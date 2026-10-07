@@ -7,7 +7,8 @@ ROOT = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.dirname(os.
 OUT = os.path.join(ROOT, 'site'); SRC = os.path.join(ROOT, 'output')
 # ---- settings: change these in one place ----
 SITE = 'Overheard in the Bay'
-TAGLINE = 'A rather dry take on Bay Area tech news'
+TAGLINE = 'Tech news and gossip, best served hot'
+META_DESC = 'A dry-wit Bay Area tech briefing, written by AI every weekday morning.'
 BYLINE = 'As Heard by Always-On Listening'   # public byline; email keeps 'Designed for human consumption by Geoff Allen'
 BASE = 'https://bay.overheardnews.com'
 MIN_DATE = '2026-10-02'   # earlier editions predate the current voice and are not published
@@ -60,7 +61,7 @@ def render(secs, rel=''):
         else: o.append(f'<h2>{E(title)}</h2>')
         o.append('<div class="cbody">')
         if lines and lines[0].startswith('~ '):
-            o.append(f'<p class="stand">{inline(lines[0][2:])}</p>'); lines = lines[1:]
+            lines = lines[1:]  # tagline lives in the banner
         def more(l):
             lab, _, rest = l[2:].partition(':')
             return f'<p class="more"><em>{E(lab.strip())}:</em> {inline(rest.strip())}</p>'
@@ -132,7 +133,7 @@ def first_para(secs):
     for t, ls in secs:
         if t in ('THE ONE THING', 'THE LEAD') and ls:
             p = re.sub(r'\*\*|\[([^\]]+)\]\([^)]+\)', lambda m: m.group(1) or '', ls[0]); return p[:200]
-    return TAGLINE
+    return META_DESC
 CSS = '''
 :root{--ink:#1F2933;--mute:#6B7280;--red:#B3261E;--paper:#E9E3D6;--sheet:#F6F1E7;--card:#fff;--rule:#E5E0D8;--wash:#F7F3EE}
 @media(prefers-color-scheme:dark){:root{--ink:#E8E6E3;--mute:#9AA3AD;--red:#FF8A80;--paper:#0E1013;--sheet:#1A1D21;--card:#22262B;--rule:#2C3036;--wash:#22262B}}
@@ -190,7 +191,7 @@ def title_html():
     words = SITE.upper().split(); return ' '.join(f'<span class="cap">{w[0]}</span>{w[1:]}' for w in words)
 def subscribe_box():
     return f'''<div class="sub"><h2>GET IT IN YOUR INBOX</h2><p class="sub-note">Written every weekday morning by software, with one human on the loop and a firm policy of staying out of it.</p><form class="subscribe" action="{SUBSCRIBE_ACTION}" method="post"><input type="email" name="email" required placeholder="you@example.com" aria-label="Email address"><input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><button type="submit">Subscribe</button><span class="msg" id="msg" aria-live="polite"></span><small>One email each weekday morning. Unsubscribe any time, with a quick confirmation.</small></form></div>'''
-def page(title, body, rel='', desc=TAGLINE, canon='/'):
+def page(title, body, rel='', desc=META_DESC, canon='/'):
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><link rel="canonical" href="{BASE}{canon}">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banners/00_masthead.png"><link rel="stylesheet" href="{rel}style.css"></head><body><div class="wrap">
