@@ -29,27 +29,89 @@ def parse(path):
             cur = [s[3:].strip(), []]; secs.append(cur); continue
         if cur is not None: cur[1].append(s)
     return secs
-def render(secs):
+COLS = {
+ 'THE LEAD': ('01_lead', 'news'), 'THE LEDGER': ('02_ledger', 'money'), 'OPEN WEIGHTS': ('03_weights', 'money'),
+ 'HUMAN, YOUR LOOP IS CALLING': ('04_human', 'machine'), 'THE SCUTTLEBUTT': ('05_scuttle', 'wit'), 'LOCAL DESK': ('06_local', 'news'),
+ 'CORRECTIONS AND UPDATES': ('07_corr', 'news'), 'AUTOMATIC REPLIES': ('08_auto', 'machine'), 'SYNTHETIC REFLECTIONS': ('09_synth', 'machine'),
+ 'EMPATHY AS A SERVICE': ('10_empathy', 'machine'), 'YOUR CALL IS IMPORTANT TO US': ('11_call', 'wit'),
+ 'UNSUITABLE FOR GENERAL RELEASE': ('12_unsuit', 'wit'), 'THREE THINGS TO BRING UP TODAY': ('13_three', 'wit')}
+SCALES = [1e8, 2.5e8, 5e8, 1e9, 2.5e9, 5e9, 1e10, 2.5e10, 5e10, 1e11]
+def amount(line):
+    best = None
+    for m in re.finditer(r'\$\s?([\d][\d,]*(?:\.\d+)?)\s?(billion|million|thousand|bn|B|M|K)\b', line):
+        tail = line[m.end():m.end() + 24].lower()
+        mult = {'billion': 1e9, 'bn': 1e9, 'b': 1e9, 'million': 1e6, 'm': 1e6, 'thousand': 1e3, 'k': 1e3}[m.group(2).lower()]
+        val = float(m.group(1).replace(',', '')) * mult
+        isval = bool(re.match(r'\s*(pre-money|post-money|valuation|valued|market cap)', tail))
+        if best is None or (best[1] and not isval): best = (val, isval)
+        if not isval: break
+    return best[0] if best else None
+def money(v):
+    if v >= 1e9: return '$' + f'{v/1e9:.2f}'.rstrip('0').rstrip('.') + 'B'
+    if v >= 1e6: return '$' + f'{v/1e6:.1f}'.rstrip('0').rstrip('.') + 'M'
+    return f'${v/1e3:.0f}K'
+def render(secs, rel=''):
     o = []
     for title, lines in secs:
-        o.append(f'<section><h2>{E(title)}</h2>')
+        info = COLS.get(title); fam = info[1] if info else 'news'
+        slug = re.sub(r'[^a-z]+', '-', title.lower()).strip('-')
+        o.append(f'<section class="col {fam} {slug}">')
+        if info: o.append(f'<img class="cb" src="{rel}banners/{info[0]}.png" alt="{E(title)}" width="1200" height="220">')
+        else: o.append(f'<h2>{E(title)}</h2>')
+        o.append('<div class="cbody">')
         if lines and lines[0].startswith('~ '):
             o.append(f'<p class="stand">{inline(lines[0][2:])}</p>'); lines = lines[1:]
         def more(l):
             lab, _, rest = l[2:].partition(':')
             return f'<p class="more"><em>{E(lab.strip())}:</em> {inline(rest.strip())}</p>'
+        body = [l for l in lines if l.strip()]
+        txt = [l for l in body if not l.startswith('> ')]
+        links = [more(l) for l in body if l.startswith('> ')]
         if title in ('THE ONE THING', 'THE LEAD'):
-            for l in lines: o.append(more(l) if l.startswith('> ') else f'<p class="lead">{inline(l)}</p>')
+            for l in body:
+                if l.startswith('> '): o.append(more(l))
+                else: o.append(f'<p class="lead"><span class="dc">{E(l[0])}</span>{inline(l[1:])}</p>')
+        elif title == 'THE LEDGER':
+            amts = [amount(l) for l in txt]; top = max([x for x in amts if x] + [5e8]); scale = next(x for x in SCALES if x >= top)
+            o.append('<div class="ledger">')
+            for l, a in zip(txt, amts):
+                right = ''
+                if a:
+                    pct = max(4, min(100, round(a / scale * 100)))
+                    right = f'<div class="amt">{money(a)}</div><div class="bar"><i style="width:{pct}%"></i></div><div class="sc">of {money(scale)} scale</div>'
+                o.append(f'<div class="row"><div class="who">{inline(l)}</div><div class="side">{right}</div></div>')
+            o.append('</div>'); o.extend(links)
         elif title.startswith('WHO') or title == 'OPEN WEIGHTS':
-            for l in lines:
-                if l.startswith('> '): o.append(more(l)); continue
+            card = None
+            for l in body:
+                if l.startswith('> '):
+                    if card is not None: card += more(l)
+                    else: o.append(more(l))
+                    continue
                 m = re.match(r'\*\*(UP|DOWN):\s*(.+?)\*\*\s*(.*)', l)
                 if m:
-                    cls, lab = ('up','&#9650; UP') if m.group(1)=='UP' else ('down','&#9660; DOWN')
-                    o.append(f'<p><span class="tag {cls}">{lab}</span> <strong>{inline(m.group(2))}</strong> {inline(m.group(3))}</p>')
-                else: o.append(f'<p>{inline(l)}</p>')
+                    if card is not None: o.append(card + '</div>')
+                    cls, lab = ('up', '&#9650; UP') if m.group(1) == 'UP' else ('down', '&#9660; DOWN')
+                    card = f'<div class="owcard {cls}"><div class="hd"><span class="tag {cls}">{lab}</span> <strong>{inline(m.group(2))}</strong></div><p>{inline(m.group(3))}</p>'
+                else:
+                    o.append(f'<p>{inline(l)}</p>')
+            if card is not None: o.append(card + '</div>')
         elif title.startswith('THREE'):
-            o.append('<ol>' + ''.join('<li>' + inline(NUM.sub('', l)) + '</li>' for l in lines) + '</ol>')
+            o.append('<ol class="three">' + ''.join('<li>' + inline(NUM.sub('', l)) + '</li>' for l in txt) + '</ol>'); o.extend(links)
+        elif title == 'HUMAN, YOUR LOOP IS CALLING':
+            o.append('<div class="darkpanel">' + ''.join(f'<p>{inline(l)}</p>' for l in txt) + ''.join(links) + '</div>')
+        elif title == 'THE SCUTTLEBUTT':
+            o.append('<div class="scut"><span class="stamp">UNCONFIRMED</span>' + ''.join(f'<p>{inline(l)}</p>' for l in txt) + '</div>'); o.extend(links)
+        elif title == 'CORRECTIONS AND UPDATES':
+            o.append('<div class="erratum"><span class="lab">FOR THE RECORD</span>' + ''.join(f'<p>{inline(l)}</p>' for l in txt) + '</div>'); o.extend(links)
+        elif title == 'AUTOMATIC REPLIES':
+            o.append('<div class="autoreply"><div class="status"><strong>STATUS</strong> Responding automatically</div><div class="ar">' + ''.join(f'<p>{inline(l)}</p>' for l in txt) + '</div></div>'); o.extend(links)
+        elif title == 'EMPATHY AS A SERVICE':
+            o.append('<div class="note"><div class="orn">&mdash; &#9825; &mdash;</div>' + ''.join(f'<p>{inline(l)}</p>' for l in txt) + '</div>'); o.extend(links)
+        elif title == 'YOUR CALL IS IMPORTANT TO US':
+            for l in body: o.append(more(l) if l.startswith('> ') else f'<p class="callrule">{inline(l)}</p>')
+        elif title == 'UNSUITABLE FOR GENERAL RELEASE':
+            o.append('<div class="boxed">' + ''.join(f'<p>{inline(l)}</p>' for l in txt) + '</div>'); o.extend(links)
         elif title == 'SOURCES':
             ul = False
             for l in lines:
@@ -61,8 +123,8 @@ def render(secs):
                     o.append(f'<h3>{inline(l.strip("*"))}</h3>')
             if ul: o.append('</ul>')
         else:
-            for l in lines: o.append(more(l) if l.startswith('> ') else f'<p>{inline(l)}</p>')
-        o.append('</section>')
+            for l in body: o.append(more(l) if l.startswith('> ') else f'<p>{inline(l)}</p>')
+        o.append('</div></section>')
     return '\n'.join(o)
 def long_date(iso):
     d = datetime.date.fromisoformat(iso); return d.strftime('%A, %B ') + str(d.day) + d.strftime(', %Y')
@@ -93,6 +155,29 @@ ol{padding-left:22px}li{margin-bottom:8px}p.more{font:14px/1.5 Arial,sans-serif;
 .hp{position:absolute;left:-9999px}#msg{font:14px Arial,sans-serif;margin-top:8px;width:100%}
 ul.arch{list-style:none;padding:0}ul.arch li{border-bottom:1px solid var(--rule);padding:12px 0;margin:0}ul.arch .d{font:bold 12px Arial,sans-serif;letter-spacing:.08em;color:var(--mute);text-transform:uppercase}ul.arch a{font-size:19px;text-decoration:none}ul.arch p{font-size:15px;color:var(--mute);margin:4px 0 0}
 p.sub-note{font:14px/1.5 Arial,sans-serif;color:var(--mute);margin:0 0 12px}footer .copy{font:12px Arial,sans-serif;font-style:normal;display:inline-block;margin-top:6px}footer{font:italic 13px Georgia,serif;color:var(--mute);text-align:center;border-top:1px solid var(--mute);padding-top:10px;margin-top:40px}
+
+.col{margin:0 0 4px;--c:#24344D;--t:#E4E9F1}.col.money{--c:#1F6B4F;--t:#E1EFE8}.col.machine{--c:#5B3FA0;--t:#ECE6F6}.col.wit{--c:#B34D12;--t:#F8E8DB}
+.cb{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:34px -16px 0}.cbody{padding-top:16px}
+.col h2{margin-top:34px}
+p.lead{background:none;border:0;padding:0;font-size:19px}p.lead .dc{float:left;font:bold 56px/46px Georgia,serif;color:var(--c);padding:4px 10px 0 0}
+.ledger{background:var(--t);border-top:3px solid var(--c);margin:0 0 18px;color:#1B2430}.ledger .row{display:flex;gap:14px;align-items:center;padding:14px;border-bottom:1px solid rgba(0,0,0,.08)}
+.ledger .who{flex:1;font-size:16px;line-height:1.45}.ledger .side{width:130px;text-align:right}.ledger .amt{font:bold 28px/1 Georgia,serif;color:var(--c)}
+.ledger .bar{height:8px;background:rgba(0,0,0,.12);margin-top:8px}.ledger .bar i{display:block;height:8px;background:var(--c)}.ledger .sc{font:10px Arial,sans-serif;color:#4C7A68;margin-top:3px}
+.ledger a{color:#1D4ED8}@media(max-width:480px){.ledger .row{flex-direction:column;align-items:flex-start}.ledger .side{width:100%;text-align:left}}
+.owcard{background:var(--card);border:1px solid var(--rule);border-top:4px solid var(--c);padding:14px 16px;margin:0 0 14px}.owcard.down{border-top-color:#B3261E}
+.owcard .hd{margin:0 0 8px;font-size:18px}.owcard p{margin:0 0 8px;font-size:16px}.owcard p.more{margin:8px 0 0}
+.tag.up{background:#1F6B4F;color:#fff}.tag.down{background:#B3261E;color:#fff}
+.darkpanel{background:#2A1F4A;color:#F1ECFA;padding:20px 22px 8px;margin:0 0 16px}.darkpanel a{color:#CFC2F2}.darkpanel p.more{color:#B9ABE0}.darkpanel p.more a{color:#CFC2F2}
+.scut{background:var(--t);border:2px dashed var(--c);padding:16px 18px 6px;margin:0 0 12px;color:#1B2430;font-style:italic}.scut a{color:#1D4ED8}
+.stamp{display:inline-block;border:2px solid var(--c);color:var(--c);font:bold 11px Arial,sans-serif;letter-spacing:3px;padding:3px 8px;margin:0 0 10px;font-style:normal}
+.erratum{border-top:4px double var(--c);border-bottom:4px double var(--c);padding:14px 4px 4px;margin:0 0 16px}.erratum .lab{display:block;font:bold 11px Arial,sans-serif;letter-spacing:2px;color:var(--c);margin:0 0 6px}
+.autoreply{border:1px solid #BFB1E3;background:#fff;margin:0 0 16px;color:#1B2430}.autoreply .status{background:var(--t);border-bottom:1px solid #BFB1E3;padding:8px 14px;font:11px/1.6 Arial,sans-serif;color:#4A3487;letter-spacing:.5px}.autoreply .ar{padding:16px 18px 2px}.autoreply a{color:#1D4ED8}
+.note{background:var(--t);border:1px solid #CFC2F2;padding:20px 26px 8px;margin:0 0 18px;font-style:italic;color:#1B2430}.note .orn{text-align:center;color:var(--c);letter-spacing:6px;margin:0 0 10px;font-style:normal}.note a{color:#1D4ED8}
+.callrule{border-left:4px solid var(--c);padding-left:14px}
+.boxed{border:1px solid var(--ink);background:var(--card);padding:16px 18px 4px;margin:0 0 16px}
+ol.three{list-style:none;padding:0;counter-reset:n}ol.three li{counter-increment:n;display:flex;gap:14px;align-items:center;margin:0 0 14px}ol.three li:before{content:counter(n);flex:none;width:46px;height:46px;border-radius:23px;background:var(--c);color:#fff;font:bold 24px/46px Georgia,serif;text-align:center}
+.masthead{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:0 -16px}.byline{text-align:center;font:italic 14px Georgia,serif;margin:10px 0 0}.byline .by{color:var(--red)}
+.col p a{word-break:break-word}
 '''
 JS = '''<script>
 document.querySelectorAll('form.subscribe').forEach(function(f){f.addEventListener('submit',function(e){e.preventDefault();
@@ -108,9 +193,9 @@ def subscribe_box():
 def page(title, body, rel='', desc=TAGLINE, canon='/'):
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><link rel="canonical" href="{BASE}{canon}">
-<meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banner.png"><link rel="stylesheet" href="{rel}style.css"></head><body><div class="wrap">
-<img class="banner" src="{rel}banner.png" alt="A data center, the Golden Gate Bridge and a robot in a fleece vest" width="1200" height="300">
-<header class="mast"><p class="title"><a href="{rel or './'}">{title_html()}</a></p><div class="tag-line">{E(TAGLINE)} <span style="color:var(--mute)">&nbsp;|&nbsp;</span> <span class="by">{E(BYLINE)}</span></div></header>
+<meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banners/00_masthead.png"><link rel="stylesheet" href="{rel}style.css"></head><body><div class="wrap">
+<img class="masthead" src="{rel}banners/00_masthead.png" alt="Overheard in the Bay. {E(TAGLINE)}" width="1200" height="380">
+<p class="byline">{E(BYLINE)}</p>
 <nav><a href="{rel or './'}">Today</a><a href="{rel}archive/">Archive</a><a href="{rel}about/">About</a><a href="{rel}unsubscribe/">Unsubscribe</a></nav>
 {body}
 <footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">Written by Claude, an AI model made by Anthropic. All views expressed are strictly AI generated and are not the views of any human on, in, or around the loop, including the one who designed this for human consumption.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of Overheard in the Bay. All rights reserved.</span></footer></div>{JS}</body></html>'''
@@ -122,9 +207,12 @@ if not eds: sys.exit('no editions found in ' + SRC)
 eds.sort(reverse=True)
 os.makedirs(OUT, exist_ok=True)
 shutil.copy(os.path.join(ROOT, 'template', 'banner.png'), os.path.join(OUT, 'banner.png'))
+bsrc = os.path.join(ROOT, 'template', 'banners')
+if os.path.isdir(bsrc):
+    shutil.copytree(bsrc, os.path.join(OUT, 'banners'), dirs_exist_ok=True)
 w('style.css', CSS)
 for iso, secs in eds:
-    w(f'editions/{iso}/index.html', page(f'{SITE} — {long_date(iso)}', f'<p class="date">{long_date(iso)}</p>' + render(secs) + subscribe_box(), rel='../../', desc=first_para(secs), canon=f'/editions/{iso}/'))
+    w(f'editions/{iso}/index.html', page(f'{SITE} — {long_date(iso)}', f'<p class="date">{long_date(iso)}</p>' + render(secs, '../../') + subscribe_box(), rel='../../', desc=first_para(secs), canon=f'/editions/{iso}/'))
 latest_iso, latest = eds[0]
 w('index.html', page(SITE, f'<p class="date">{long_date(latest_iso)} &middot; <a href="editions/{latest_iso}/">permalink</a></p>' + render(latest) + subscribe_box(), desc=first_para(latest)))
 items = ''.join(f'<li><span class="d">{long_date(i)}</span><br><a href="../editions/{i}/">{E(SITE)}, {long_date(i)}</a><p>{E(first_para(s))}</p></li>' for i, s in eds)
