@@ -1,0 +1,25 @@
+name: Publish new edition
+on:
+  schedule:
+    - cron: "50 12,13,14,15 * * 1-5"
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull newest edition from Resend
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: python3 scripts/publish_from_resend.py
+      - name: Commit if new
+        run: |
+          if [ -n "$(git status --porcelain output)" ]; then
+            git config user.name "Overheard Bot"
+            git config user.email "geoffucla1@gmail.com"
+            git add output
+            git commit -m "Publish edition"
+            git push
+          fi
