@@ -9,7 +9,7 @@ OUT = os.path.join(ROOT, 'site'); SRC = os.path.join(ROOT, 'output')
 SITE = 'Overheard in the Bay'
 TAGLINE = 'Tech news and gossip, best served hot'
 META_DESC = 'A dry-wit Bay Area tech briefing, written by AI every weekday morning.'
-BYLINE = 'As Heard by Always-On Listening'   # public byline; email keeps 'Designed for human consumption by Geoff Allen'
+BYLINE = 'As heard by Always-On Listening. Designed for human consumption.'
 BASE = 'https://bay.overheardnews.com'
 MIN_DATE = '2026-10-02'   # earlier editions predate the current voice and are not published
 SUBSCRIBE_ACTION = 'https://api.overheardnews.com/subscribe'
@@ -25,7 +25,7 @@ def parse(path):
     secs, cur = [], None
     for ln in open(path, encoding='utf-8').read().splitlines():
         s = ln.strip()
-        if not s or s.startswith('# ') or s.startswith(('Curated by','Designed for human consumption')): continue
+        if not s or s.startswith('# ') or s.startswith(('Curated by','Designed for human consumption','As heard by Always-On Listening')): continue
         if s.startswith('## '):
             cur = [s[3:].strip(), []]; secs.append(cur); continue
         if cur is not None: cur[1].append(s)

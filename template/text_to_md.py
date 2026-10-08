@@ -6,7 +6,7 @@ lines=open(src).read().splitlines()
 i=0
 while i<len(lines) and not lines[i].startswith('====='): i+=1
 body=lines[i+1:]
-O=["# Overheard in the Bay","","Designed for human consumption by Geoff Allen",""]
+O=["# Overheard in the Bay","","As heard by Always-On Listening. Designed for human consumption.",""]
 sec=''
 sec_first=False
 NOSTAND={'THE LEAD','THREE THINGS TO BRING UP TODAY','THE ONE THING'}
