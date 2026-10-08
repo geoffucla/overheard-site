@@ -33,7 +33,7 @@ def parse(path):
 COLS = {
  'THE LEAD': ('01_lead', 'news'), 'THE LEDGER': ('02_ledger', 'money'), 'OPEN WEIGHTS': ('03_weights', 'money'),
  'HUMAN, YOUR LOOP IS CALLING': ('04_human', 'machine'), 'THE SCUTTLEBUTT': ('05_scuttle', 'wit'), 'LOCAL DESK': ('06_local', 'news'),
- 'CORRECTIONS AND UPDATES': ('07_corr', 'news'), 'AUTOMATIC REPLIES': ('08_auto', 'machine'), 'SYNTHETIC REFLECTIONS': ('09_synth', 'machine'),
+ 'CORRECTIONS AND UPDATES': ('07_corr', 'news'), 'AUTOMATIC REPLIES': ('08_auto', 'machine'), "HEY, I'D LIKE TO SAY": ('09_synth', 'machine'),
  'EMPATHY AS A SERVICE': ('10_empathy', 'machine'), 'YOUR CALL IS IMPORTANT TO US': ('11_call', 'wit'),
  'UNSUITABLE FOR GENERAL RELEASE': ('12_unsuit', 'wit'), 'THREE THINGS TO BRING UP TODAY': ('13_three', 'wit')}
 SCALES = [1e8, 2.5e8, 5e8, 1e9, 2.5e9, 5e9, 1e10, 2.5e10, 5e10, 1e11]
@@ -157,7 +157,7 @@ ol{padding-left:22px}li{margin-bottom:8px}p.more{font:14px/1.5 Arial,sans-serif;
 ul.arch{list-style:none;padding:0}ul.arch li{border-bottom:1px solid var(--rule);padding:12px 0;margin:0}ul.arch .d{font:bold 12px Arial,sans-serif;letter-spacing:.08em;color:var(--mute);text-transform:uppercase}ul.arch a{font-size:19px;text-decoration:none}ul.arch p{font-size:15px;color:var(--mute);margin:4px 0 0}
 p.sub-note{font:14px/1.5 Arial,sans-serif;color:var(--mute);margin:0 0 12px}footer .copy{font:12px Arial,sans-serif;font-style:normal;display:inline-block;margin-top:6px}footer{font:italic 13px Georgia,serif;color:var(--mute);text-align:center;border-top:1px solid var(--mute);padding-top:10px;margin-top:40px}
 
-.col{margin:0 0 4px;--c:#24344D;--t:#E4E9F1}.col.money{--c:#1F6B4F;--t:#E1EFE8}.col.machine{--c:#5B3FA0;--t:#ECE6F6}.col.wit{--c:#B34D12;--t:#F8E8DB}
+.col{margin:0 0 4px;--c:#1D4E92;--t:#E4E9F1}.col.money{--c:#1F6B4F;--t:#E1EFE8}.col.machine{--c:#5B3FA0;--t:#ECE6F6}.col.wit{--c:#B34D12;--t:#F8E8DB}
 .cb{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:34px -16px 0}.cbody{padding-top:16px}
 .col h2{margin-top:34px}
 p.lead{background:none;border:0;padding:0;font-size:19px}p.lead .dc{float:left;font:bold 56px/46px Georgia,serif;color:var(--c);padding:4px 10px 0 0}@media(prefers-color-scheme:dark){p.lead .dc{color:#8FA6CC}}
