@@ -19,7 +19,7 @@ lst = api("/broadcasts").get("data", [])
 cands = []
 for b in lst:
     if b.get("status") != "sent": continue
-    if not (b.get("name") or "").startswith("Overheard in the Bay"): continue
+    if not (b.get("name") or "").startswith(("Overheard in the Bay", "Terms Undisclosed")): continue
     if (b.get("segment_id") or SEGMENT) != SEGMENT: continue
     if not b.get("sent_at"): continue
     cands.append(b)
@@ -36,14 +36,14 @@ for b in sorted(cands, key=lambda x: x["sent_at"], reverse=True)[:4]:
         continue
     full = api("/broadcasts/" + b["id"])
     text = full.get("text") or ""
-    if "Overheard in the Bay" not in text:
+    if not any(k in text for k in ("Overheard in the Bay", "Terms Undisclosed")):
         print("broadcast", b["id"], "has no plain text; skipping"); continue
     tmp = "/tmp/email_" + iso + ".txt"
     open(tmp, "w").write(text)
     subprocess.run([sys.executable, os.path.join(ROOT, "template", "text_to_md.py"), tmp, out], check=True)
     md = open(out).read()
     heads = re.findall(r"^## (.+)$", md, re.M)
-    if not md.startswith("# Overheard in the Bay") or len(heads) < 4 or heads[-1].strip() != "THREE THINGS TO BRING UP TODAY":
+    if not md.startswith(("# Overheard in the Bay", "# Terms Undisclosed")) or len(heads) < 4 or heads[-1].strip() != "THREE THINGS TO BRING UP TODAY":
         os.remove(out)
         print("validation failed for", iso, heads[-1:] ); sys.exit(1)
     print("wrote", out); made += 1
