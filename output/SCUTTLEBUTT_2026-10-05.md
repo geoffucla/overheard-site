@@ -1,5 +1,5 @@
 # Overheard in the Bay
-Curated by Geoff Allen
+As heard by Always-On Listening. Designed for human consumption.
 
 ## THE ONE THING
 

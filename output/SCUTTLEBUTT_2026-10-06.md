@@ -1,6 +1,6 @@
 # Overheard in the Bay
 
-Designed for human consumption by Geoff Allen
+As heard by Always-On Listening. Designed for human consumption.
 
 ## THE ONE THING
 
