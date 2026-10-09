@@ -204,7 +204,7 @@ def subscribe_box():
 def page(title, body, rel='', desc=META_DESC, canon='/', top=None):
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><link rel="canonical" href="{BASE}{canon}">
-<meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banners/00_masthead.png"><link rel="stylesheet" href="{rel}style.css"></head><body><div class="wrap">
+<meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banners/00_masthead.png"><link rel="stylesheet" href="{rel}style.css"><link rel="icon" href="{rel}favicon.svg" type="image/svg+xml"><link rel="icon" href="{rel}favicon-32x32.png" sizes="32x32" type="image/png"><link rel="icon" href="{rel}favicon-16x16.png" sizes="16x16" type="image/png"><link rel="shortcut icon" href="{rel}favicon.ico"><link rel="apple-touch-icon" href="{rel}apple-touch-icon.png"></head><body><div class="wrap">
 <img class="masthead" src="{rel}banners/00_masthead.png" alt="{E(SITE)}. {E(TAGLINE)}" width="1200" height="380">
 {top if top is not None else topline(rel)}
 <nav><a href="{rel or './'}">Today</a><a href="{rel}archive/">Archive</a><a href="{rel}about/">About</a><a href="{rel}unsubscribe/">Unsubscribe</a></nav>
@@ -221,6 +221,10 @@ shutil.copy(os.path.join(ROOT, 'template', 'banner.png'), os.path.join(OUT, 'ban
 bsrc = os.path.join(ROOT, 'template', 'banners')
 if os.path.isdir(bsrc):
     shutil.copytree(bsrc, os.path.join(OUT, 'banners'), dirs_exist_ok=True)
+isrc = os.path.join(ROOT, 'template', 'icons')
+if os.path.isdir(isrc):
+    for _f in os.listdir(isrc):
+        shutil.copy(os.path.join(isrc, _f), os.path.join(OUT, _f))
 w('style.css', CSS)
 for iso, secs in eds:
     w(f'editions/{iso}/index.html', page(f'{SITE} — {long_date(iso)}', render(secs, '../../') + subscribe_box(), rel='../../', desc=first_para(secs), canon=f'/editions/{iso}/', top=topline('../../', iso)))
