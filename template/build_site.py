@@ -212,7 +212,7 @@ def page(title, body, rel='', desc=META_DESC, canon='/', top=None):
 {top if top is not None else topline(rel)}
 <nav><a href="{rel or './'}">Today</a><a href="{rel}archive/">Archive</a><a href="{rel}about/">About</a><a href="{rel}subscribe/">Subscribe</a></nav>
 {body}
-<footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">{E(BYLINE)}</span><br><span class="copy">All views expressed are strictly AI generated and are not the views of any human on, in, or around the loop.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of {E(SITE)}. All rights reserved. <a href="{rel}unsubscribe/">Unsubscribe</a></span></footer></div>{JS}</body></html>'''
+<footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">{E(BYLINE)}</span><br><span class="copy">All views expressed are strictly AI generated and are not those of any human.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of {E(SITE)}. All rights reserved. <a href="{rel}unsubscribe/">Unsubscribe</a></span></footer></div>{JS}</body></html>'''
 def w(path, content):
     p = os.path.join(OUT, path); os.makedirs(os.path.dirname(p), exist_ok=True); open(p, 'w', encoding='utf-8').write(content)
 files = sorted(f for f in os.listdir(SRC) if re.fullmatch(r'SCUTTLEBUTT_\d{4}-\d{2}-\d{2}\.md', f) and f[12:22] >= MIN_DATE)
