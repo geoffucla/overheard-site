@@ -10,6 +10,7 @@ SITE = 'Terms Undisclosed: Bay Blend'
 TAGLINE = 'News, deals, rumors and unsolicited opinions'
 META_DESC = 'A wry Bay Area business briefing: news, deals, rumors and opinions, written by AI every weekday morning.'
 BYLINE = 'Designed by hand, assembled by machine.'
+SECRET = 'Your secret to being clued in and quotable before your first meeting.'
 BASE = 'https://bay.termsundisclosed.com'
 MIN_DATE = '2026-10-02'   # earlier editions predate the current voice and are not published
 SUBSCRIBE_ACTION = 'https://api.termsundisclosed.com/subscribe'
@@ -177,7 +178,7 @@ p.lead{background:none;border:0;padding:0;font-size:19px}p.lead .dc{float:left;f
 .callrule{border-left:4px solid var(--c);padding-left:14px}
 .boxed{border:1px solid var(--ink);background:var(--card);padding:16px 18px 4px;margin:0 0 16px}
 ol.three{list-style:none;padding:0;counter-reset:n}ol.three li{counter-increment:n;display:flex;gap:14px;align-items:center;margin:0 0 14px}ol.three li:before{content:counter(n);flex:none;width:46px;height:46px;border-radius:23px;background:var(--c);color:#fff;font:bold 24px/46px Georgia,serif;text-align:center}
-.masthead{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:0 -16px}.byline{text-align:center;font:italic 14px Georgia,serif;margin:10px 0 0}.byline .by{color:var(--red)}
+.masthead{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:0 -16px}.byline{text-align:center;font:italic 14px Georgia,serif;margin:10px 0 0}.byline .by{color:var(--red)}.tagimg{display:block;margin:14px auto 0;width:100%;max-width:420px;height:auto}.byline .pill{display:inline-block;border:1px solid var(--ink);border-radius:999px;padding:6px 18px;font:italic 15px/1.45 Georgia,serif;font-style:italic}.byline .pill b{color:var(--red)}
 .col p a{word-break:break-word}
 '''
 JS = '''<script>
@@ -196,10 +197,10 @@ def page(title, body, rel='', desc=META_DESC, canon='/'):
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><link rel="canonical" href="{BASE}{canon}">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banners/00_masthead.png"><link rel="stylesheet" href="{rel}style.css"></head><body><div class="wrap">
 <img class="masthead" src="{rel}banners/00_masthead.png" alt="{E(SITE)}. {E(TAGLINE)}" width="1200" height="380">
-<p class="byline">{E(BYLINE)}</p>
+<img class="tagimg" src="{rel}banners/00_tagline.png" alt="Your secret to being clued in and quotable before your first meeting." width="839" height="190">
 <nav><a href="{rel or './'}">Today</a><a href="{rel}archive/">Archive</a><a href="{rel}about/">About</a><a href="{rel}unsubscribe/">Unsubscribe</a></nav>
 {body}
-<footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">Written by Claude, an AI model made by Anthropic. All views expressed are strictly AI generated and are not the views of any human on, in, or around the loop, including the one who designed this by hand.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of {E(SITE)}. All rights reserved.</span></footer></div>{JS}</body></html>'''
+<footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">{E(BYLINE)}</span><br><span class="copy">Written by Claude, an AI model made by Anthropic. All views expressed are strictly AI generated and are not the views of any human on, in, or around the loop, including the one who designed this by hand.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of {E(SITE)}. All rights reserved.</span></footer></div>{JS}</body></html>'''
 def w(path, content):
     p = os.path.join(OUT, path); os.makedirs(os.path.dirname(p), exist_ok=True); open(p, 'w', encoding='utf-8').write(content)
 files = sorted(f for f in os.listdir(SRC) if re.fullmatch(r'SCUTTLEBUTT_\d{4}-\d{2}-\d{2}\.md', f) and f[12:22] >= MIN_DATE)
