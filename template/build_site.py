@@ -130,6 +130,15 @@ def render(secs, rel=''):
     return '\n'.join(o)
 def long_date(iso):
     d = datetime.date.fromisoformat(iso); return d.strftime('%A, %B ') + str(d.day) + d.strftime(', %Y')
+
+TAG_ALT = 'Your secret to being clued in and quotable before your first meeting.'
+LABEL_IMG = lambda rel: f'<img class="tagimg" src="{rel}banners/00_tagline.png" alt="{TAG_ALT}" width="839" height="190">'
+def tile(iso):
+    d = datetime.date.fromisoformat(iso)
+    return (f'<div class="tile" aria-label="{long_date(iso)}"><span class="tm">{d.strftime("%B").upper()}</span>'
+            f'<span class="td">{d.day}</span><span class="tw">{d.strftime("%A").upper()}</span><span class="ty">{d.year}</span></div>')
+def topline(rel, iso=None):
+    return f'<div class="topline">{tile(iso) if iso else ""}{LABEL_IMG(rel)}</div>'
 def first_para(secs):
     for t, ls in secs:
         if t in ('THE ONE THING', 'THE LEAD') and ls:
@@ -178,7 +187,7 @@ p.lead{background:none;border:0;padding:0;font-size:19px}p.lead .dc{float:left;f
 .callrule{border-left:4px solid var(--c);padding-left:14px}
 .boxed{border:1px solid var(--ink);background:var(--card);padding:16px 18px 4px;margin:0 0 16px}
 ol.three{list-style:none;padding:0;counter-reset:n}ol.three li{counter-increment:n;display:flex;gap:14px;align-items:center;margin:0 0 14px}ol.three li:before{content:counter(n);flex:none;width:46px;height:46px;border-radius:23px;background:var(--c);color:#fff;font:bold 24px/46px Georgia,serif;text-align:center}
-.masthead{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:0 -16px}.byline{text-align:center;font:italic 14px Georgia,serif;margin:10px 0 0}.byline .by{color:var(--red)}.tagimg{display:block;margin:14px auto 0;width:100%;max-width:420px;height:auto}.byline .pill{display:inline-block;border:1px solid var(--ink);border-radius:999px;padding:6px 18px;font:italic 15px/1.45 Georgia,serif;font-style:italic}.byline .pill b{color:var(--red)}
+.masthead{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:0 -16px}.byline{text-align:center;font:italic 14px Georgia,serif;margin:10px 0 0}.byline .by{color:var(--red)}.topline{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px 18px;margin:14px 0 22px}.tagimg{display:block;width:100%;max-width:420px;height:auto}.tile{display:flex;flex-direction:column;align-items:center;width:108px;border:1px solid #8A6238;border-radius:8px;overflow:hidden;background:#FBF1DA;box-shadow:0 6px 10px rgba(60,40,20,.32);font-family:Arial,sans-serif;text-align:center}.tile .tm{align-self:stretch;background:#B3261E;color:#fff;font:bold 11px Arial,sans-serif;letter-spacing:3px;padding:6px 0}.tile .td{font:bold 44px/1 Georgia,serif;color:#1B2430;padding:6px 0 0}.tile .tw{font:bold 10px Arial,sans-serif;letter-spacing:3px;color:#5C6573;padding-top:4px}.tile .ty{font:10px Arial,sans-serif;letter-spacing:2px;color:#5C6573;padding:2px 0 8px}.byline .pill{display:inline-block;border:1px solid var(--ink);border-radius:999px;padding:6px 18px;font:italic 15px/1.45 Georgia,serif;font-style:italic}.byline .pill b{color:var(--red)}
 .col p a{word-break:break-word}
 '''
 JS = '''<script>
@@ -192,12 +201,12 @@ def title_html():
     words = SITE.upper().split(); return ' '.join(f'<span class="cap">{w[0]}</span>{w[1:]}' for w in words)
 def subscribe_box():
     return f'''<div class="sub"><h2>GET IT IN YOUR INBOX</h2><p class="sub-note">Written every weekday morning by software, with one human on the loop and a firm policy of staying out of it.</p><form class="subscribe" action="{SUBSCRIBE_ACTION}" method="post"><input type="email" name="email" required placeholder="you@example.com" aria-label="Email address"><input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><button type="submit">Subscribe</button><span class="msg" id="msg" aria-live="polite"></span><small>One email each weekday morning. Unsubscribe any time, with a quick confirmation.</small></form></div>'''
-def page(title, body, rel='', desc=META_DESC, canon='/'):
+def page(title, body, rel='', desc=META_DESC, canon='/', top=None):
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><link rel="canonical" href="{BASE}{canon}">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banners/00_masthead.png"><link rel="stylesheet" href="{rel}style.css"></head><body><div class="wrap">
 <img class="masthead" src="{rel}banners/00_masthead.png" alt="{E(SITE)}. {E(TAGLINE)}" width="1200" height="380">
-<img class="tagimg" src="{rel}banners/00_tagline.png" alt="Your secret to being clued in and quotable before your first meeting." width="839" height="190">
+{top if top is not None else topline(rel)}
 <nav><a href="{rel or './'}">Today</a><a href="{rel}archive/">Archive</a><a href="{rel}about/">About</a><a href="{rel}unsubscribe/">Unsubscribe</a></nav>
 {body}
 <footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">{E(BYLINE)}</span><br><span class="copy">Written by Claude, an AI model made by Anthropic. All views expressed are strictly AI generated and are not the views of any human on, in, or around the loop, including the one who designed this by hand.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of {E(SITE)}. All rights reserved.</span></footer></div>{JS}</body></html>'''
@@ -214,9 +223,9 @@ if os.path.isdir(bsrc):
     shutil.copytree(bsrc, os.path.join(OUT, 'banners'), dirs_exist_ok=True)
 w('style.css', CSS)
 for iso, secs in eds:
-    w(f'editions/{iso}/index.html', page(f'{SITE} — {long_date(iso)}', f'<p class="date">{long_date(iso)}</p>' + render(secs, '../../') + subscribe_box(), rel='../../', desc=first_para(secs), canon=f'/editions/{iso}/'))
+    w(f'editions/{iso}/index.html', page(f'{SITE} — {long_date(iso)}', render(secs, '../../') + subscribe_box(), rel='../../', desc=first_para(secs), canon=f'/editions/{iso}/', top=topline('../../', iso)))
 latest_iso, latest = eds[0]
-w('index.html', page(SITE, f'<p class="date">{long_date(latest_iso)} &middot; <a href="editions/{latest_iso}/">permalink</a></p>' + render(latest) + subscribe_box(), desc=first_para(latest)))
+w('index.html', page(SITE, f'<p class="date"><a href="editions/{latest_iso}/">Permalink to this edition</a></p>' + render(latest) + subscribe_box(), desc=first_para(latest), top=topline('', latest_iso)))
 items = ''.join(f'<li><span class="d">{long_date(i)}</span><br><a href="../editions/{i}/">{E(SITE)}, {long_date(i)}</a><p>{E(first_para(s))}</p></li>' for i, s in eds)
 w('archive/index.html', page(f'Archive — {SITE}', f'<h1 class="page">Archive</h1><ul class="arch">{items}</ul>' + subscribe_box(), rel='../', canon='/archive/'))
 w('about/index.html', page(f'About — {SITE}', f'''<h1 class="page">About</h1><p>{E(SITE)} is a short weekday briefing on what is actually going on in Bay Area business and tech. It covers who is up, who is down, what people are whispering and what the press is getting wrong. It is written to be read in five minutes and repeated at dinner, where it will be credited to you.</p><p>The tone is dry on purpose. The takes are meant to be correct, and the jokes are there to help them along. Stories are chosen for water-cooler interest, and the number of press releases a story generated counts against it.</p><p><strong>How this is made.</strong> Every weekday morning, software searches the news, picks the stories, writes the takes, attaches the links and sends the email, all before most readers have located their coffee. The daily run is fully automated, so in the technical sense there are no humans in the loop. The software in question is Claude, an AI model made by Anthropic, which this briefing occasionally covers, so read those items with whatever discount you think fair.</p><p>There is, however, a human on the loop, which is a different thing and a much less restful job. The curator conceived the whole enterprise and designed every part of it, from the sections and the voice to the rules on what counts as a story, how dry the jokes should be, and when an old story earns an update. The curator reads each edition every morning, in the manner of a nervous parent at a school play.</p><p>The software is told to link only to pages it actually read, and it still gets things wrong now and then. That is what the footer means by occasionally wrong, and it is why every item carries its sources. Think of them as receipts.</p><p>Readers are welcome to forward the email and to quote short excerpts with a link back to the original. Please do not republish whole editions without permission. The software has no feelings about this, but the publisher does.</p><p>Designed by hand, assembled by machine. Questions, corrections and tips are welcome at <a href="mailto:human@termsundisclosed.com">human@termsundisclosed.com</a>, where an actual human will read them.</p>''' + subscribe_box(), rel='../', canon='/about/'))
