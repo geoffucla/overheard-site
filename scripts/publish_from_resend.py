@@ -20,6 +20,7 @@ cands = []
 for b in lst:
     if b.get("status") != "sent": continue
     if not (b.get("name") or "").startswith(("Overheard in the Bay", "Terms Undisclosed")): continue
+    if "Texas Blend" in (b.get("name") or ""): continue
     if (b.get("segment_id") or SEGMENT) != SEGMENT: continue
     if not b.get("sent_at"): continue
     cands.append(b)
@@ -27,12 +28,20 @@ if not cands:
     print("no sent production broadcasts found"); sys.exit(0)
 
 made = 0
-for b in sorted(cands, key=lambda x: x["sent_at"], reverse=True)[:4]:
+seen = set()
+def iso_of(b):
     s = b["sent_at"].replace("Z", "+00:00").replace(" ", "T")
     s = re.sub(r"([+-]\d\d)$", r"\1:00", s)
-    iso = datetime.fromisoformat(s).astimezone(ZoneInfo("America/Los_Angeles")).strftime("%Y-%m-%d")
+    return datetime.fromisoformat(s).astimezone(ZoneInfo("America/Los_Angeles")).strftime("%Y-%m-%d")
+
+for b in sorted(cands, key=lambda x: x["sent_at"], reverse=True)[:6]:
+    iso = iso_of(b)
+    if iso in seen:
+        continue          # newest broadcast for this date already handled
+    seen.add(iso)
     out = os.path.join(ROOT, "output", f"SCUTTLEBUTT_{iso}.md")
-    if os.path.exists(out):
+    updated = "(updated)" in (b.get("name") or "").lower()
+    if os.path.exists(out) and not updated:
         continue
     full = api("/broadcasts/" + b["id"])
     text = full.get("text") or ""
@@ -40,11 +49,15 @@ for b in sorted(cands, key=lambda x: x["sent_at"], reverse=True)[:4]:
         print("broadcast", b["id"], "has no plain text; skipping"); continue
     tmp = "/tmp/email_" + iso + ".txt"
     open(tmp, "w").write(text)
-    subprocess.run([sys.executable, os.path.join(ROOT, "template", "text_to_md.py"), tmp, out], check=True)
-    md = open(out).read()
+    cand = out + ".new"
+    subprocess.run([sys.executable, os.path.join(ROOT, "template", "text_to_md.py"), tmp, cand], check=True)
+    md = open(cand).read()
     heads = re.findall(r"^## (.+)$", md, re.M)
     if not md.startswith(("# Overheard in the Bay", "# Terms Undisclosed")) or len(heads) < 4 or heads[-1].strip() != "THREE THINGS TO BRING UP TODAY":
-        os.remove(out)
-        print("validation failed for", iso, heads[-1:] ); sys.exit(1)
-    print("wrote", out); made += 1
+        os.remove(cand)
+        print("validation failed for", iso, heads[-1:]); sys.exit(1)
+    if os.path.exists(out) and open(out).read() == md:
+        os.remove(cand); continue     # nothing changed
+    os.replace(cand, out)
+    print("wrote", out, "(updated)" if updated else ""); made += 1
 print("new editions:", made)
