@@ -58,9 +58,9 @@ def render(secs, rel=''):
         info = COLS.get(title); fam = info[1] if info else 'news'
         slug = re.sub(r'[^a-z]+', '-', title.lower()).strip('-')
         o.append(f'<section class="col {fam} {slug}">')
-        if info: o.append(f'<img class="cb" src="{rel}banners/{info[0]}.png" alt="{E(title)}" width="1200" height="286">')
+        if info: o.append(f'<img class="cb" src="{rel}banners/{info[0]}.png" alt="{E(title)}" width="1200" height="263">')
         else: o.append(f'<h2>{E(title)}</h2>')
-        o.append('<div class="cbody">')
+        o.append('<div class="cside"><div class="cbody">' if info else '<div class="cbody">')
         if lines and lines[0].startswith('~ '):
             lines = lines[1:]  # tagline lives in the banner
         def more(l):
@@ -126,7 +126,7 @@ def render(secs, rel=''):
             if ul: o.append('</ul>')
         else:
             for l in body: o.append(more(l) if l.startswith('> ') else f'<p>{inline(l)}</p>')
-        o.append('</div></section>')
+        o.append(('</div></div>' + f'<img class="cbf" src="{rel}banners/foot_{info[0]}.png" alt="" width="1200" height="96">' + '</section>') if info else '</div></section>')
     return '\n'.join(o)
 def long_date(iso):
     d = datetime.date.fromisoformat(iso); return d.strftime('%A, %B ') + str(d.day) + d.strftime(', %Y')
@@ -168,7 +168,7 @@ ul.arch{list-style:none;padding:0}ul.arch li{border-bottom:1px solid var(--rule)
 p.sub-note{font:14px/1.5 Arial,sans-serif;color:var(--mute);margin:0 0 12px}footer .copy{font:12px Arial,sans-serif;font-style:normal;display:inline-block;margin-top:6px}footer{font:italic 13px Georgia,serif;color:var(--mute);text-align:center;border-top:1px solid var(--mute);padding-top:10px;margin-top:40px}
 
 .col{margin:0 0 4px;--c:#1D4E92;--t:#E4E9F1}.col.money{--c:#1F6B4F;--t:#E1EFE8}.col.machine{--c:#5B3FA0;--t:#ECE6F6}.col.wit{--c:#B34D12;--t:#F8E8DB}
-.cb{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:34px -16px 0}.cbody{padding-top:16px}
+.cb{display:block;width:100%;height:auto;margin:30px 0 0}.cbf{display:block;width:100%;height:auto;margin:0 0 6px}.cside{background:var(--c);padding:0 1.1667%}.cbody{padding:20px 22px 6px;background:#FCFAF5;color:#1F2933}.cbody a{color:#B3261E}.col.human-your-loop-is-calling .cbody{background:#2A1F4A;color:#F1ECFA}.col.human-your-loop-is-calling .cbody a{color:#CFC2F2}.cbody p.more,.cbody p.stand{color:#5C6573}.cbody p.more a{color:#B3261E}.cbody .owcard,.cbody .boxed,.cbody .sub{background:#fff;color:#1B2430;border-color:#E5E0D8}@media(prefers-color-scheme:dark){.cbody p.lead .dc{color:var(--c)}.cbody .owcard,.cbody .boxed{background:#fff;color:#1B2430}.cbody ol.three li{color:#1F2933}}.col.human-your-loop-is-calling .cbody p.more{color:#B9ABE0}.col.human-your-loop-is-calling .cbody p.more a{color:#CFC2F2}
 .col h2{margin-top:34px}
 p.lead{background:none;border:0;padding:0;font-size:19px}p.lead .dc{float:left;font:bold 56px/46px Georgia,serif;color:var(--c);padding:4px 10px 0 0}@media(prefers-color-scheme:dark){p.lead .dc{color:#8FA6CC}}
 .ledger{background:var(--t);border-top:3px solid var(--c);margin:0 0 18px;color:#1B2430}.ledger .row{display:flex;gap:14px;align-items:center;padding:14px;border-bottom:1px solid rgba(0,0,0,.08)}
