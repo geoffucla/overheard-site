@@ -225,7 +225,15 @@ def w(path, content):
     p = os.path.join(OUT, path); os.makedirs(os.path.dirname(p), exist_ok=True); open(p, 'w', encoding='utf-8').write(content)
 files = sorted(f for f in os.listdir(SRC) if re.fullmatch(r'SCUTTLEBUTT_\d{4}-\d{2}-\d{2}\.md', f) and f[12:22] >= MIN_DATE)
 eds = [(f[12:22], parse(os.path.join(SRC, f))) for f in files]
-if not eds: sys.exit('no editions found in ' + SRC)
+if not eds:
+    if EDITION == 'bay': sys.exit('no editions found in ' + SRC)
+    # new edition with nothing published yet: ship a coming-soon placeholder so the deploy succeeds
+    os.makedirs(OUT, exist_ok=True)
+    _b = os.path.join(ROOT, 'template', 'banners'); _e = os.path.join(ROOT, 'template', 'editions', EDITION)
+    if os.path.isdir(_b): shutil.copytree(_b, os.path.join(OUT, 'banners'), dirs_exist_ok=True)
+    if os.path.isfile(os.path.join(_e, '00_masthead.png')): shutil.copy(os.path.join(_e, '00_masthead.png'), os.path.join(OUT, 'banners', '00_masthead.png'))
+    open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8').write('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>' + E(SITE) + '</title><style>body{margin:0;background:#4B505C;color:#E8CBA6;font:16px/1.6 ui-monospace,Menlo,monospace;text-align:center}img{width:100%;max-width:1200px;height:auto;display:block;margin:0 auto}p{padding:24px 16px}a{color:#8FDCFF}</style></head><body><img src="banners/00_masthead.png" alt="' + E(SITE) + '"><p>&gt; coffee: brewing. first edition coming soon._<br><br><a href="' + HOME + '/">All editions</a></p></body></html>')
+    print('no editions yet: wrote coming-soon placeholder to ' + OUT); sys.exit(0)
 eds.sort(reverse=True)
 os.makedirs(OUT, exist_ok=True)
 bsrc = os.path.join(ROOT, 'template', 'banners')
