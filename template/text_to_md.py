@@ -1,4 +1,5 @@
-import sys,re
+import sys,re,os,json
+_ED=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'editions.json')))[os.environ.get('EDITION','bay')]
 # usage: text_to_md.py email_text_path out_md_path
 # Rebuilds the edition markdown from the plain-text email (the inverse of md_to_email_text.py).
 src,out=sys.argv[1:3]
@@ -6,7 +7,7 @@ lines=open(src).read().splitlines()
 i=0
 while i<len(lines) and not lines[i].startswith('====='): i+=1
 body=lines[i+1:]
-O=["# Terms Undisclosed: Bay Blend","","Designed by hand, assembled by machine.",""]
+O=["# "+_ED["name"],"","Designed by hand, assembled by machine.",""]
 sec=''
 sec_first=False
 NOSTAND={'THE LEAD','THREE THINGS TO BRING UP TODAY','THE ONE THING'}

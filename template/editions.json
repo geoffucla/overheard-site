@@ -1,0 +1,38 @@
+{
+  "bay": {
+    "name": "Terms Undisclosed: Bay Blend",
+    "short": "Bay Blend",
+    "site": "https://bay.termsundisclosed.com",
+    "sender": "Terms Undisclosed <bay@mail.termsundisclosed.com>",
+    "reply_to": "human@termsundisclosed.com",
+    "production_segment": "995bb00b-9636-4dc4-9f94-68c0dcf928ed",
+    "test_segment": "ce1c27a1-be67-4d4b-88ef-278064a1cc37",
+    "region_label": "Bay Area",
+    "meta_desc": "A wry Bay Area business briefing: news, deals, rumors and opinions, written by AI every weekday morning.",
+    "min_date": "2026-10-02",
+    "send_time": "4:40 AM America/Los_Angeles, Monday to Friday",
+    "status": "live",
+    "output_dir": "output",
+    "site_dir": "site",
+    "home_url": "https://www.termsundisclosed.com",
+    "blurb": "Bay Area business and tech: who is up, who is down, what people are whispering and what the press is getting wrong. Every weekday morning."
+  },
+  "texas": {
+    "name": "Terms Undisclosed: Texas Blend",
+    "short": "Texas Blend",
+    "site": "https://tx.termsundisclosed.com",
+    "sender": "Terms Undisclosed <tx@mail.termsundisclosed.com>",
+    "reply_to": "human@termsundisclosed.com",
+    "production_segment": "",
+    "test_segment": "ce1c27a1-be67-4d4b-88ef-278064a1cc37",
+    "region_label": "Texas",
+    "meta_desc": "A wry Texas business briefing: news, deals, rumors and opinions, written by AI every weekday morning.",
+    "min_date": "2026-10-12",
+    "send_time": "4:30 AM America/Chicago, Monday to Friday",
+    "status": "testing",
+    "output_dir": "output-texas",
+    "site_dir": "site-texas",
+    "home_url": "https://www.termsundisclosed.com",
+    "blurb": "Texas business and tech, Dallas-Fort Worth first, then Austin, Houston and San Antonio, with a column for oil, gas and the grid."
+  }
+}

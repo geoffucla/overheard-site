@@ -4,15 +4,21 @@ Usage: python3 build_site.py [AI_folder]   (default: parent of this file's folde
 Writes AI_folder/site/ (index.html, archive/, editions/, about/, unsubscribe/, banner.png, style.css)."""
 import os, re, sys, html, shutil, datetime
 ROOT = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, 'site'); SRC = os.path.join(ROOT, 'output')
-# ---- settings: change these in one place ----
-SITE = 'Terms Undisclosed: Bay Blend'
+EDITION = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('EDITION', 'bay')
+import json
+CFG_ALL = json.load(open(os.path.join(ROOT, 'template', 'editions.json')))
+CFG = CFG_ALL[EDITION]
+OUT = os.path.join(ROOT, CFG.get('site_dir', 'site')); SRC = os.path.join(ROOT, CFG.get('output_dir', 'output'))
+# ---- settings come from template/editions.json (one entry per edition) ----
+SITE = CFG['name']
 TAGLINE = 'News, deals, rumors and unsolicited opinions'
-META_DESC = 'A wry Bay Area business briefing: news, deals, rumors and opinions, written by AI every weekday morning.'
+META_DESC = CFG['meta_desc']
 BYLINE = 'Designed by hand, written by Claude.'
 SECRET = 'Your secret to being clued in and quotable before your first meeting.'
-BASE = 'https://bay.termsundisclosed.com'
-MIN_DATE = '2026-10-02'   # earlier editions predate the current voice and are not published
+BASE = CFG['site']
+HOME = CFG.get('home_url', 'https://www.termsundisclosed.com')
+REGION = CFG['region_label']
+MIN_DATE = CFG['min_date']   # earlier editions predate the current voice and are not published
 SUBSCRIBE_ACTION = 'https://api.termsundisclosed.com/subscribe'
 # ---------------------------------------------
 E = html.escape
@@ -36,7 +42,7 @@ COLS = {
  'HUMAN, YOUR LOOP IS CALLING': ('04_human', 'machine'), 'THE SCUTTLEBUTT': ('05_scuttle', 'wit'), 'LOCAL DESK': ('06_local', 'news'),
  'CORRECTIONS AND UPDATES': ('07_corr', 'news'), 'AUTOMATIC REPLIES': ('08_auto', 'machine'), "HEY, I'D LIKE TO SAY": ('09_synth', 'machine'),
  'EMPATHY AS A SERVICE': ('10_empathy', 'machine'), 'YOUR CALL IS IMPORTANT TO US': ('11_call', 'wit'),
- 'UNSUITABLE FOR GENERAL RELEASE': ('12_unsuit', 'wit'), 'THREE THINGS TO BRING UP TODAY': ('13_three', 'wit')}
+ 'UNSUITABLE FOR GENERAL RELEASE': ('12_unsuit', 'wit'), 'TEXAS TEA': ('14_tea', 'news'), 'THREE THINGS TO BRING UP TODAY': ('13_three', 'wit')}
 SCALES = [1e8, 2.5e8, 5e8, 1e9, 2.5e9, 5e9, 1e10, 2.5e10, 5e10, 1e11]
 def amount(line):
     best = None
@@ -191,7 +197,7 @@ p.lead{background:none;border:0;padding:0;font-size:19px}p.lead .dc{float:left;f
 ol.three{list-style:none;padding:0;counter-reset:n}ol.three li{counter-increment:n;display:flex;gap:14px;align-items:center;margin:0 0 14px}ol.three li:before{content:counter(n);flex:none;width:46px;height:46px;border-radius:23px;background:var(--c);color:#fff;font:bold 24px/46px Georgia,serif;text-align:center}
 .masthead{background:#4B505C;display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:0 -16px}.byline{text-align:center;font:italic 14px Georgia,serif;margin:10px 0 0}.byline .by{color:var(--red)}.topline{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px 18px;margin:14px 0 22px}.tagimg{display:block;width:100%;max-width:387px;height:auto}.tile{display:flex;flex-direction:column;align-items:center;width:108px;border:1px solid #8A6238;border-radius:8px;overflow:hidden;background:#FBF1DA;box-shadow:0 6px 10px rgba(60,40,20,.32);font-family:Arial,sans-serif;text-align:center}.tile .tm{align-self:stretch;background:#B3261E;color:#fff;font:bold 11px Arial,sans-serif;letter-spacing:3px;padding:6px 0}.tile .td{font:bold 44px/1 Georgia,serif;color:#1B2430;padding:6px 0 0}.tile .tw{font:bold 10px Arial,sans-serif;letter-spacing:3px;color:#5C6573;padding-top:4px}.tile .ty{font:10px Arial,sans-serif;letter-spacing:2px;color:#5C6573;padding:2px 0 8px}.byline .pill{display:inline-block;border:1px solid var(--ink);border-radius:999px;padding:6px 18px;font:italic 15px/1.45 Georgia,serif;font-style:italic}.byline .pill b{color:var(--red)}
 .col p a{word-break:break-word}
-.desk{background:#4B505C;margin:0 -16px;padding:2px 20px 28px}.desk nav{margin:0;padding:18px 0 4px;font:bold 11px Arial,sans-serif;letter-spacing:.14em}.desk nav a{color:#D5DEEE;margin:0 9px}.desk nav a:hover{color:#E8CBA6}.desk .date{color:#D5DEEE;margin:14px 0 0}.desk .date a{color:#D5DEEE}
+.desk{background:#4B505C;margin:0 -16px;padding:2px 20px 28px}.desk nav{margin:0;padding:18px 0 4px;font:bold 11px Arial,sans-serif;letter-spacing:.14em}.desk nav a{color:#D5DEEE;margin:0 9px}.desk nav a{white-space:nowrap}.desk nav a:hover{color:#E8CBA6}@media(max-width:480px){.desk nav{font-size:10px;letter-spacing:.06em}.desk nav a{margin:0 5px}}.desk .date{color:#D5DEEE;margin:14px 0 0}.desk .date a{color:#D5DEEE}
 .term{font:min(14px,3.3vw)/1.75 Menlo,Consolas,'Courier New',monospace;color:#F2F5FA;white-space:nowrap;margin:16px 0 0}.term .tg{color:#8CF0B0}.term .tk{color:#8FDCFF}.term .tm{color:#B6C0D4}.term .tv{color:#E8CBA6}.term a{color:#E8CBA6;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}.term a:hover{color:#fff;text-decoration-style:solid}.term .cur{color:#fff}.term.tend{margin:26px 0 0}
 .subline{font:italic 15px Georgia,serif;text-align:center;margin:30px 0 0;color:var(--mute)}.subline a{color:var(--red);font:bold 14px Arial,sans-serif;font-style:normal;margin-left:6px}footer .copy a{color:var(--mute)}
 '''
@@ -213,7 +219,7 @@ def page(title, body, rel='', desc=META_DESC, canon='/', top=None, after=''):
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><link rel="canonical" href="{BASE}{canon}">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banner.png"><link rel="stylesheet" href="{rel}style.css"><link rel="icon" href="{rel}favicon.svg" type="image/svg+xml"><link rel="icon" href="{rel}favicon-32x32.png" sizes="32x32" type="image/png"><link rel="icon" href="{rel}favicon-16x16.png" sizes="16x16" type="image/png"><link rel="shortcut icon" href="{rel}favicon.ico"><link rel="apple-touch-icon" href="{rel}apple-touch-icon.png"></head><body><div class="wrap">
 <img class="masthead" src="{rel}banners/00_masthead.png" alt="{E(SITE)}. {E(TAGLINE)}" width="1200" height="388">
-{(DESK_OPEN := '<div class="desk"><nav><a href="' + (rel or './') + '">Today</a><a href="' + rel + 'archive/">Archive</a><a href="' + rel + 'about/">About</a><a href="' + rel + 'subscribe/">Subscribe</a></nav>')}{(top + body + TERM_END + '</div>') if top else ('</div>' + body)}{after}
+{(DESK_OPEN := '<div class="desk"><nav><a href="' + (rel or './') + '">Today</a><a href="' + rel + 'archive/">Archive</a><a href="' + rel + 'about/">About</a><a href="' + rel + 'subscribe/">Subscribe</a><a href="' + HOME + '/">All editions</a></nav>')}{(top + body + TERM_END + '</div>') if top else ('</div>' + body)}{after}
 <footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">{E(BYLINE)}</span><br><span class="copy">All views expressed are strictly AI generated and are not those of any human.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of {E(SITE)}. All rights reserved. <a href="{rel}unsubscribe/">Unsubscribe</a></span></footer></div>{JS}</body></html>'''
 def w(path, content):
     p = os.path.join(OUT, path); os.makedirs(os.path.dirname(p), exist_ok=True); open(p, 'w', encoding='utf-8').write(content)
@@ -222,10 +228,15 @@ eds = [(f[12:22], parse(os.path.join(SRC, f))) for f in files]
 if not eds: sys.exit('no editions found in ' + SRC)
 eds.sort(reverse=True)
 os.makedirs(OUT, exist_ok=True)
-shutil.copy(os.path.join(ROOT, 'template', 'banner.png'), os.path.join(OUT, 'banner.png'))
 bsrc = os.path.join(ROOT, 'template', 'banners')
 if os.path.isdir(bsrc):
     shutil.copytree(bsrc, os.path.join(OUT, 'banners'), dirs_exist_ok=True)
+esrc = os.path.join(ROOT, 'template', 'editions', EDITION)   # per-edition masthead and share image
+if os.path.isdir(esrc):
+    for _f in os.listdir(esrc):
+        shutil.copy(os.path.join(esrc, _f), os.path.join(OUT, 'banner.png' if _f == 'banner.png' else os.path.join('banners', _f)))
+else:
+    shutil.copy(os.path.join(ROOT, 'template', 'banner.png'), os.path.join(OUT, 'banner.png'))
 isrc = os.path.join(ROOT, 'template', 'icons')
 if os.path.isdir(isrc):
     for _f in os.listdir(isrc):
@@ -237,7 +248,7 @@ latest_iso, latest = eds[0]
 w('index.html', page(SITE, render(latest), desc=first_para(latest), top=topline('', latest_iso, f'editions/{latest_iso}/'), after=sub_prompt('')))
 items = ''.join(f'<li><span class="d">{long_date(i)}</span><br><a href="../editions/{i}/">{E(SITE)}, {long_date(i)}</a><p>{E(first_para(s))}</p></li>' for i, s in eds)
 w('archive/index.html', page(f'Archive — {SITE}', f'<h1 class="page">Archive</h1><ul class="arch">{items}</ul>' + sub_prompt('../'), rel='../', canon='/archive/'))
-w('about/index.html', page(f'About — {SITE}', f'''<h1 class="page">About</h1><p>{E(SITE)} is a short weekday briefing on what is actually going on in Bay Area business and tech. It covers who is up, who is down, what people are whispering and what the press is getting wrong. It is written to be read in five minutes and repeated at dinner, where it will be credited to you.</p><p>The tone is dry on purpose. The takes are meant to be correct, and the jokes are there to help them along. Stories are chosen for water-cooler interest, and the number of press releases a story generated counts against it.</p><p><strong>How this is made.</strong> Every weekday morning, software searches the news, picks the stories, writes the takes, attaches the links and sends the email, all before most readers have located their coffee. The daily run is fully automated, so in the technical sense there are no humans in the loop. The software in question is Claude, an AI model made by Anthropic, which this briefing occasionally covers, so read those items with whatever discount you think fair.</p><p>There is, however, a human on the loop, which is a different thing and a much less restful job. The curator conceived the whole enterprise and designed every part of it, from the sections and the voice to the rules on what counts as a story, how dry the jokes should be, and when an old story earns an update. The curator reads each edition every morning, in the manner of a nervous parent at a school play.</p><p>The software is told to link only to pages it actually read, and it still gets things wrong now and then. That is what the footer means by occasionally wrong, and it is why every item carries its sources. Think of them as receipts.</p><p>Readers are welcome to forward the email and to quote short excerpts with a link back to the original. Please do not republish whole editions without permission. The software has no feelings about this, but the publisher does.</p><p>Designed by hand, written by Claude. Questions, corrections and tips are welcome at <a href="mailto:human@termsundisclosed.com">human@termsundisclosed.com</a>, where an actual human will read them.</p>''' + sub_prompt('../'), rel='../', canon='/about/'))
+w('about/index.html', page(f'About — {SITE}', f'''<h1 class="page">About</h1><p>{E(SITE)} is a short weekday briefing on what is actually going on in {E(REGION)} business and tech. It covers who is up, who is down, what people are whispering and what the press is getting wrong. It is written to be read in five minutes and repeated at dinner, where it will be credited to you.</p><p>The tone is dry on purpose. The takes are meant to be correct, and the jokes are there to help them along. Stories are chosen for water-cooler interest, and the number of press releases a story generated counts against it.</p><p><strong>How this is made.</strong> Every weekday morning, software searches the news, picks the stories, writes the takes, attaches the links and sends the email, all before most readers have located their coffee. The daily run is fully automated, so in the technical sense there are no humans in the loop. The software in question is Claude, an AI model made by Anthropic, which this briefing occasionally covers, so read those items with whatever discount you think fair.</p><p>There is, however, a human on the loop, which is a different thing and a much less restful job. The curator conceived the whole enterprise and designed every part of it, from the sections and the voice to the rules on what counts as a story, how dry the jokes should be, and when an old story earns an update. The curator reads each edition every morning, in the manner of a nervous parent at a school play.</p><p>The software is told to link only to pages it actually read, and it still gets things wrong now and then. That is what the footer means by occasionally wrong, and it is why every item carries its sources. Think of them as receipts.</p><p>Readers are welcome to forward the email and to quote short excerpts with a link back to the original. Please do not republish whole editions without permission. The software has no feelings about this, but the publisher does.</p><p>Designed by hand, written by Claude. Questions, corrections and tips are welcome at <a href="mailto:human@termsundisclosed.com">human@termsundisclosed.com</a>, where an actual human will read them.</p>''' + sub_prompt('../'), rel='../', canon='/about/'))
 w('subscribe/index.html', page(f'Subscribe — {SITE}', '<h1 class="page">Subscribe</h1>' + subscribe_box(), rel='../', canon='/subscribe/'))
 w('unsubscribe/index.html', page(f'Unsubscribe — {SITE}', '''<h1 class="page">Unsubscribe</h1><p>Every email has an <strong>Unsubscribe</strong> link in the footer. Click it, confirm in the follow-up email, and you are off the list. You will not be asked to log in, and nobody will ask why you are leaving, though the software may privately wonder.</p><p>If that link has gone missing, write to <a href="mailto:human@termsundisclosed.com?subject=Unsubscribe">human@termsundisclosed.com</a> with the subject &ldquo;Unsubscribe&rdquo; and you will be removed by hand, by an actual human, who will try not to take it personally.</p>''', rel='../', canon='/unsubscribe/'))
 w('robots.txt', f'User-agent: *\nAllow: /\nSitemap: {BASE}/sitemap.xml\n')
