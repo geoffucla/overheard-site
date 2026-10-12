@@ -61,29 +61,31 @@ for key, ed in CFG.items():
             ok = md.startswith(("# Overheard in the Bay", "# Terms Undisclosed")) and len(heads) >= 4 and heads[-1].strip() == "THREE THINGS TO BRING UP TODAY"
             return ok, heads[-1:]
         cand = out + ".new"; md = None; why = ""
+        print(key, iso, "text chars:", len(text), "html chars:", len(htm), "has ==== rule:", "=" * 20 in text)
         env = {**os.environ, "EDITION": key}
         # 1) our own plain-text format (has a ==== rule under the header); 2) fall back to parsing the HTML
         if "=" * 20 in text and any(k in text for k in ("Overheard in the Bay", "Terms Undisclosed")):
             tmp = "/tmp/email_" + key + "_" + iso + ".txt"
-            open(tmp, "w").write(text)
+            open(tmp, "w", encoding="utf-8").write(text)
             r = subprocess.run([sys.executable, os.path.join(ROOT, "template", "text_to_md.py"), tmp, cand], env=env)
             if r.returncode == 0 and os.path.exists(cand):
-                m1 = open(cand).read(); ok, why = valid(m1)
+                m1 = open(cand, encoding="utf-8").read(); ok, why = valid(m1)
                 if ok: md = m1
         if md is None and htm:
             tmp = "/tmp/email_" + key + "_" + iso + ".html"
-            open(tmp, "w").write(htm)
+            open(tmp, "w", encoding="utf-8").write(htm)
             r = subprocess.run([sys.executable, os.path.join(ROOT, "template", "html_to_md.py"), tmp, cand], env=env)
+            print(key, iso, "html_to_md exit code:", r.returncode)
             if r.returncode == 0 and os.path.exists(cand):
-                m2 = open(cand).read(); ok, why = valid(m2)
+                m2 = open(cand, encoding="utf-8").read(); ok, why = valid(m2)
                 if ok: md = m2; print(key, iso, ": built from the email HTML")
         if md is None:
             if os.path.exists(cand): os.remove(cand)
             print("validation failed for", key, iso, why); sys.exit(1)
         if os.path.exists(cand): os.remove(cand)
-        if os.path.exists(out) and open(out).read() == md:
+        if os.path.exists(out) and open(out, encoding="utf-8").read() == md:
             continue     # nothing changed
-        open(out, "w").write(md)
+        open(out, "w", encoding="utf-8").write(md)
         print("wrote", out, "(updated)" if updated else ""); made += 1
     print(key, "new editions:", made); total += made
 print("total new editions:", total)
