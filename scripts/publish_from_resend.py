@@ -51,8 +51,8 @@ for key, ed in CFG.items():
         seen.add(iso)
         out = os.path.join(outdir, f"SCUTTLEBUTT_{iso}.md")
         updated = "(updated)" in (b.get("name") or "").lower()
-        if os.path.exists(out) and not updated:
-            continue
+        if os.path.exists(out) and not updated and len(seen) > 2:
+            continue     # older dates are left alone; the two newest are rebuilt so converter fixes self-heal
         full = api("/broadcasts/" + b["id"])
         text = full.get("text") or ""
         htm = full.get("html") or ""
