@@ -55,21 +55,35 @@ for key, ed in CFG.items():
             continue
         full = api("/broadcasts/" + b["id"])
         text = full.get("text") or ""
-        if not any(k in text for k in ("Overheard in the Bay", "Terms Undisclosed")):
-            print(key, ": broadcast", b["id"], "has no plain text; skipping"); continue
-        tmp = "/tmp/email_" + key + "_" + iso + ".txt"
-        open(tmp, "w").write(text)
-        cand = out + ".new"
-        subprocess.run([sys.executable, os.path.join(ROOT, "template", "text_to_md.py"), tmp, cand],
-                       check=True, env={**os.environ, "EDITION": key})
-        md = open(cand).read()
-        heads = re.findall(r"^## (.+)$", md, re.M)
-        if not md.startswith(("# Overheard in the Bay", "# Terms Undisclosed")) or len(heads) < 4 or heads[-1].strip() != "THREE THINGS TO BRING UP TODAY":
-            os.remove(cand)
-            print("validation failed for", key, iso, heads[-1:]); sys.exit(1)
+        htm = full.get("html") or ""
+        def valid(md):
+            heads = re.findall(r"^## (.+)$", md, re.M)
+            ok = md.startswith(("# Overheard in the Bay", "# Terms Undisclosed")) and len(heads) >= 4 and heads[-1].strip() == "THREE THINGS TO BRING UP TODAY"
+            return ok, heads[-1:]
+        cand = out + ".new"; md = None; why = ""
+        env = {**os.environ, "EDITION": key}
+        # 1) our own plain-text format (has a ==== rule under the header); 2) fall back to parsing the HTML
+        if "=" * 20 in text and any(k in text for k in ("Overheard in the Bay", "Terms Undisclosed")):
+            tmp = "/tmp/email_" + key + "_" + iso + ".txt"
+            open(tmp, "w").write(text)
+            r = subprocess.run([sys.executable, os.path.join(ROOT, "template", "text_to_md.py"), tmp, cand], env=env)
+            if r.returncode == 0 and os.path.exists(cand):
+                m1 = open(cand).read(); ok, why = valid(m1)
+                if ok: md = m1
+        if md is None and htm:
+            tmp = "/tmp/email_" + key + "_" + iso + ".html"
+            open(tmp, "w").write(htm)
+            r = subprocess.run([sys.executable, os.path.join(ROOT, "template", "html_to_md.py"), tmp, cand], env=env)
+            if r.returncode == 0 and os.path.exists(cand):
+                m2 = open(cand).read(); ok, why = valid(m2)
+                if ok: md = m2; print(key, iso, ": built from the email HTML")
+        if md is None:
+            if os.path.exists(cand): os.remove(cand)
+            print("validation failed for", key, iso, why); sys.exit(1)
+        if os.path.exists(cand): os.remove(cand)
         if os.path.exists(out) and open(out).read() == md:
-            os.remove(cand); continue     # nothing changed
-        os.replace(cand, out)
+            continue     # nothing changed
+        open(out, "w").write(md)
         print("wrote", out, "(updated)" if updated else ""); made += 1
     print(key, "new editions:", made); total += made
 print("total new editions:", total)
