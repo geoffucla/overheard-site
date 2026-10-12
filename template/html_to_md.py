@@ -5,7 +5,7 @@ import sys, re, os, json, html as H
 _ED = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'editions.json')))[os.environ.get('EDITION', 'bay')]
 src, out = sys.argv[1:3]
 S = re.S
-doc = open(src).read()
+doc = open(src, encoding='utf-8').read()
 
 def inl(t, strong=True):
     t = re.sub(r'<a\s[^>]*?href="([^"]*)"[^>]*>(.*?)</a\s*>', lambda m: '[' + re.sub(r'<[^>]+>', '', m.group(2)).strip() + '](' + H.unescape(m.group(1)) + ')', t, flags=S)
@@ -66,4 +66,4 @@ txt = '\n'.join(O)
 while re.search(r'\n\d\. [^\n]*\n\n\d\. ', txt): txt = re.sub(r'(\n\d\. [^\n]*)\n\n(\d\. )', r'\1\n\2', txt)
 O = txt.split('\n')
 while O and O[-1] == '': O.pop()
-open(out, 'w').write('\n'.join(O) + '\n')
+open(out, 'w', encoding='utf-8').write('\n'.join(O) + '\n')
