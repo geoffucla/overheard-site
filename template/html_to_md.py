@@ -22,7 +22,7 @@ O = ["# " + _ED["name"], "", "Designed by hand, assembled by machine.", ""]
 TOK = re.compile(
     r'<p\s+style="font:12px/1\.5[^>]*>(?P<link>.*?)</p\s*>'
     r'|<p\s+style="font:(?:17|15\.5|15)px/[^>]*>(?P<p>.*?)</p\s*>'
-    r'|<div\s+style="font:(?:italic )?(?:15\.5|16)px/1\.\d+ [^"]*">(?P<d>.*?)</div\s*>'
+    r'|<div\s+style="font:(?:italic )?(?:15\.5|16)px/1\.\d+ [^"]*"\s*>(?P<d>.*?)</div\s*>'
     r'|<td\s+style="padding-left:14px;font:15\.5px/1\.55[^>]*>(?P<yc>.*?)</td\s*>', S)
 
 def linkline(frag):
@@ -61,6 +61,8 @@ for i, m in enumerate(ms):
                 n += 1; lines.append(f"{n}. " + inl(t.group('yc'))); lines.append(''); continue
             frag = t.group('p') if t.group('p') is not None else (t.group('d') if t.group('d') is not None else t.group('yc'))
             lines.append(inl(frag)); lines.append('')
+    if not any(l and not l.startswith('> ') for l in lines):
+        print('::warning::column has no text:', title, file=sys.stderr)
     O += ['## ' + title, ''] + lines
 txt = '\n'.join(O)
 while re.search(r'\n\d\. [^\n]*\n\n\d\. ', txt): txt = re.sub(r'(\n\d\. [^\n]*)\n\n(\d\. )', r'\1\n\2', txt)
