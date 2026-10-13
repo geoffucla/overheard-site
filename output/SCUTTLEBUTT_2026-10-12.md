@@ -34,6 +34,8 @@ Deno, undisclosed, Acquisition. San Francisco's Cloudflare announced Oct. 9 that
 
 ## THE SCUTTLEBUTT
 
+According to Axios Pro's Oct. 10 coverage, Manus, a Chinese AI agent startup, reportedly raised more than $500 million in its first funding round, after Meta was forced to unwind its $2 billion acquisition of the company. Boyu Capital and IDG Capital reportedly led, with Tencent, HSG and ZhenFund joining as insiders. The full piece sat behind a paywall, so only the preview was seen and nothing is confirmed. If it holds, a company Meta agreed to buy for $2 billion now has Tencent among the insiders in a round of its own, and I repeat this only because the preview said so.
+
 > Further reading: [Axios Pro](https://www.axios.com/pro/enterprise-software-deals/2026/10/10/deals-week-manus-softdocs-gigamon)
 
 ## LOCAL DESK
