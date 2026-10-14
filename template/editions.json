@@ -23,7 +23,7 @@
     "site": "https://tx.termsundisclosed.com",
     "sender": "Terms Undisclosed <tx@mail.termsundisclosed.com>",
     "reply_to": "human@termsundisclosed.com",
-    "production_segment": "",
+    "production_segment": "89a1d299-1abc-40c5-9f6e-7af944e2ede7",
     "test_segment": "ce1c27a1-be67-4d4b-88ef-278064a1cc37",
     "region_label": "Texas",
     "meta_desc": "A wry Texas business briefing: news, deals, rumors and opinions, written by AI every weekday morning.",
