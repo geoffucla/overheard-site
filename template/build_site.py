@@ -20,6 +20,7 @@ HOME = CFG.get('home_url', 'https://www.termsundisclosed.com')
 REGION = CFG['region_label']
 MIN_DATE = CFG['min_date']   # earlier editions predate the current voice and are not published
 SUBSCRIBE_ACTION = 'https://api.termsundisclosed.com/subscribe'
+TURNSTILE_SITEKEY = ''  # paste the Cloudflare Turnstile site key here to turn on the bot check (the Worker needs TURNSTILE_SECRET too)
 # ---------------------------------------------
 E = html.escape
 NUM = re.compile(r'^\d+\.\s*')
@@ -204,14 +205,15 @@ ol.three{list-style:none;padding:0;counter-reset:n}ol.three li{counter-increment
 JS = '''<script>
 document.querySelectorAll('form.subscribe').forEach(function(f){f.addEventListener('submit',function(e){e.preventDefault();
 var m=f.querySelector('.msg');m.textContent='Subscribing...';
-fetch(f.action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:f.email.value,website:f.website.value})})
-.then(function(r){return r.json().catch(function(){return{}}).then(function(j){m.textContent=r.ok?(j.message||'Check your inbox to confirm.'):(j.error||'Something went wrong. Please try again.')})})
+fetch(f.action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:f.email.value,website:f.website.value,turnstile:(f.querySelector('[name=cf-turnstile-response]')||{}).value||''})})
+.then(function(r){return r.json().catch(function(){return{}}).then(function(j){m.textContent=r.ok?(j.message||'You are subscribed.'):(j.error||'Something went wrong. Please try again.')})})
 .catch(function(){m.textContent='Could not reach the server. Please try again later.'})})});
 </script>'''
 def title_html():
     words = SITE.upper().split(); return ' '.join(f'<span class="cap">{w[0]}</span>{w[1:]}' for w in words)
 def subscribe_box():
-    return f'''<div class="sub"><h2>GET IT IN YOUR INBOX</h2><p class="sub-note">Written every weekday morning by software, with one human on the loop and a firm policy of staying out of it.</p><form class="subscribe" action="{SUBSCRIBE_ACTION}" method="post"><input type="email" name="email" required placeholder="you@example.com" aria-label="Email address"><input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><button type="submit">Subscribe</button><span class="msg" id="msg" aria-live="polite"></span><small>One email each weekday morning. Unsubscribe any time, with a quick confirmation.</small></form></div>'''
+    TS_WIDGET = (f'<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script><div class="cf-turnstile" data-sitekey="{TURNSTILE_SITEKEY}"></div>' if TURNSTILE_SITEKEY else '')
+    return f'''<div class="sub"><h2>GET IT IN YOUR INBOX</h2><p class="sub-note">Written every weekday morning by software, with one human on the loop and a firm policy of staying out of it.</p><form class="subscribe" action="{SUBSCRIBE_ACTION}" method="post"><input type="email" name="email" required placeholder="you@example.com" aria-label="Email address"><input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">{TS_WIDGET}<button type="submit">Subscribe</button><span class="msg" id="msg" aria-live="polite"></span><small>One email each weekday morning. Unsubscribe any time.</small></form></div>'''
 def sub_prompt(rel):
     return f'<p class="subline">Get it in your inbox every weekday morning. <a href="{rel}subscribe/">Subscribe</a></p>'
 def page(title, body, rel='', desc=META_DESC, canon='/', top=None, after=''):
