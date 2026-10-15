@@ -29,7 +29,7 @@
     "meta_desc": "A wry Texas business briefing: news, deals, rumors and opinions, written by AI every weekday morning.",
     "min_date": "2026-10-12",
     "send_time": "4:30 AM America/Chicago, Monday to Friday",
-    "status": "testing",
+    "status": "live",
     "output_dir": "output-texas",
     "site_dir": "site-texas",
     "home_url": "https://www.termsundisclosed.com",
