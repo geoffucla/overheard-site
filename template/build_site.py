@@ -64,7 +64,7 @@ def render(secs, rel=''):
     for title, lines in secs:
         info = COLS.get(title); fam = info[1] if info else 'news'
         slug = re.sub(r'[^a-z]+', '-', title.lower()).strip('-')
-        o.append(f'<section class="col {fam} {slug}">')
+        o.append(f'<section class="col {fam} {slug}" id="{slug}">')
         if info: o.append(f'<img class="bar" src="{rel}banners/bar_{info[0]}.png?v=2026101703" alt="{E(title)}" width="1200" height="220">')
         else: o.append(f'<h2>{E(title)}</h2>')
         o.append('<div class="cbody bw">')
@@ -204,8 +204,8 @@ def coffee_line(iso):
     days = (datetime.date.fromisoformat(iso) - datetime.date(2026, 1, 5)).days
     return COFFEE[((days // 7) * 5 + min(days % 7, 4)) % len(COFFEE)]
 def dateline(rel, date_html=None):
-    left = date_html if date_html else E(SITE.upper())
-    links = f'<a href="{rel or "./"}">Today</a><a href="{rel}archive/">Archive</a><a href="{rel}about/">About</a><a href="{rel}subscribe/">Subscribe</a><a href="{HOME}/">All editions</a>'
+    left = date_html if date_html else E(CFG['short'].upper())
+    links = f'<a href="{rel or "./"}">Today</a><a href="{rel}archive/">Archive</a><a href="{rel}about/">About</a><a href="{rel}subscribe/">Subscribe</a><a href="{rel}search/">Search</a><a href="{HOME}/">All editions</a>'
     return f'<div class="dl"><span class="dd">{left}</span><nav class="dn">{links}</nav></div>'
 def topline(rel, iso=None, link=''):
     if not iso: return ''
@@ -264,10 +264,10 @@ ol.three{list-style:none;padding:0;counter-reset:n}ol.three li{counter-increment
 .desk{background:#4B505C;margin:0 -16px;padding:2px 20px 28px}.desk nav{margin:0;padding:18px 0 4px;font:bold 11px Arial,sans-serif;letter-spacing:.14em}.desk nav a{color:#D5DEEE;margin:0 9px}.desk nav a{white-space:nowrap}.desk nav a:hover{color:#E8CBA6}@media(max-width:480px){.desk nav{font-size:10px;letter-spacing:.06em}.desk nav a{margin:0 5px}}.desk .date{color:#D5DEEE;margin:14px 0 0}.desk .date a{color:#D5DEEE}
 .term{position:relative;font:bold min(18px,4.4vw)/1.5 Menlo,Consolas,'Courier New',monospace;color:#EAF9FF;text-shadow:1px 1px 0 #2E7BFF,2px 2px 0 #2467E0,3px 3px 0 #1B52BF,4px 4px 0 #143F99,5px 5px 0 #0E2E73,6px 6px 0 #0A2256,0 0 6px #B9EEFF,0 0 16px #3DA2FF,0 0 32px #1D6BFF;margin:16px 0 0;padding:14px 18px 14px 84px;min-height:80px;border:1px solid #4FB3FF;border-radius:14px;background:#0B1530 url(banners/term_bg.png?v=2026101403) center/cover no-repeat;box-shadow:0 8px 18px rgba(0,0,0,.4),inset 0 0 30px rgba(0,0,0,.5)}.term:before{content:'';position:absolute;left:12px;top:50%;width:54px;height:54px;margin-top:-27px;background:url(banners/term_cup.png?v=2026101403) center/contain no-repeat}.term.tend:before{background-image:url(banners/term_cup_off.png?v=2026101403)}.term .tg{color:#9FE2FF}.term a{color:inherit;text-decoration:none}.term.tend{margin:26px 0 0}@media(max-width:520px){.masthead{padding:14px 12px 0}.term{font-size:min(10.5px,2.8vw);white-space:nowrap;padding:12px 8px 12px 50px;min-height:56px;border-radius:12px}.term:before{left:9px;width:34px;height:34px;margin-top:-17px}}
 .subline{font:italic 15px Georgia,serif;text-align:center;margin:30px 0 0;color:var(--mute)}.subline a{color:var(--red);font:bold 14px Arial,sans-serif;font-style:normal;margin-left:6px}footer .copy a{color:var(--mute)}
-.mastn{display:block;width:100%;max-width:600px;height:auto;margin:18px auto 0}
+.mastn{display:block;width:calc(100% - 12px);max-width:none;height:auto;margin:18px 6px 0}
 .dl{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:2px 16px;border-top:3px double var(--ink);border-bottom:1px solid var(--ink);padding:9px 0;margin:12px 6px 0}
 .dd{font:bold 11px Arial,Helvetica,sans-serif;letter-spacing:2px;color:var(--ink);text-transform:uppercase}.dd a{color:inherit;text-decoration:none}
-.dl .dn{margin:0;font:bold 10px Arial,Helvetica,sans-serif;letter-spacing:1.5px;text-transform:uppercase;text-align:right}.dl .dn a{color:#1D4E92;text-decoration:none;margin:0 0 0 14px}.dl .dn a:hover{color:var(--red)}
+.dl .dn{margin:0;font:bold 10px Arial,Helvetica,sans-serif;letter-spacing:1.5px;text-transform:uppercase;text-align:right}.dl .dn a{color:#1D4E92;text-decoration:none;margin:0 0 0 12px}.dl .dn a:hover{color:var(--red)}
 @media(prefers-color-scheme:dark){.dl .dn a{color:#8FB4E8}}
 .joke{text-align:center;font:italic 14px/1.4 Georgia,'Times New Roman',serif;color:var(--mute);padding:8px 0 2px;margin:0 0 4px}
 .cup{display:inline-block;width:18px;height:18px;background:url(banners/cup_ink.png?v=2026101703) center/contain no-repeat;vertical-align:-4px;margin-right:6px}
@@ -277,6 +277,17 @@ ol.three{list-style:none;padding:0;counter-reset:n}ol.three li{counter-increment
 .cbody .boxed{background:#F5ECE3;color:#1B2430;border:0;border-top:1px solid #E3D2C3;border-bottom:1px solid #E3D2C3;padding:18px 20px 6px;margin:0 0 16px}
 .udc{float:left;font:italic bold 66px/52px Georgia,'Times New Roman',serif;color:#6B1D24;padding:6px 10px 0 0}
 .col.human-your-loop-is-calling .cbody.bw{padding:0}.col.human-your-loop-is-calling .darkpanel{margin:0;padding:20px 22px 10px}
+.sf{display:flex;gap:8px;margin:14px 0 6px}.sf input[type=search]{flex:1;min-width:0;font:17px Georgia,'Times New Roman',serif;color:var(--ink);background:var(--card);border:1px solid var(--ink);border-radius:3px;padding:10px 12px;-webkit-appearance:none;appearance:none}.sf button{font:bold 13px Arial,sans-serif;letter-spacing:.08em;background:var(--red);color:#fff;border:0;border-radius:3px;padding:0 18px;cursor:pointer}
+@media(prefers-color-scheme:dark){.sf button{background:#B3261E}}
+.sfc{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}.sfc button{font:bold 11px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}.sfc button.on{background:var(--ink);color:var(--paper)}
+.stat{font:italic 15px Georgia,serif;color:var(--mute);margin:14px 0 0}
+ul.res{list-style:none;padding:0;margin:6px 0 0}ul.res li{border-bottom:1px solid var(--rule);padding:14px 0}
+ul.res .rm{font:bold 11px Arial,sans-serif;letter-spacing:.1em;color:var(--mute);text-transform:uppercase}ul.res .rm .re{color:var(--red)}
+ul.res a.rt{display:inline-block;font:bold 19px Georgia,serif;color:var(--ink);text-decoration:none;margin:2px 0 4px}ul.res a.rt:hover{color:var(--red);text-decoration:underline}
+ul.res p{margin:0;font-size:16px;line-height:1.55;color:var(--ink)}
+mark{background:#F9E08B;color:#1F2933;padding:0 1px;border-radius:2px}
+.showmore{display:block;margin:18px auto 0;font:bold 12px Arial,sans-serif;letter-spacing:.1em;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;padding:10px 18px;cursor:pointer}
+.hint{font:14px/1.5 Arial,sans-serif;color:var(--mute);margin:6px 0 0}
 @media(max-width:520px){.dl{flex-direction:column;text-align:center;gap:0}.dd{padding:0 0 2px}.dl .dn{text-align:center;font-size:9px;letter-spacing:.5px}.dl .dn a{margin:0 6px}.cbody.bw{padding:20px 16px 10px}.col.human-your-loop-is-calling .darkpanel{padding:20px 16px 10px}}
 '''
 JS = '''<script>
@@ -286,6 +297,80 @@ fetch(f.action,{method:'POST',headers:{'Content-Type':'application/json'},body:J
 .then(function(r){return r.json().catch(function(){return{}}).then(function(j){m.textContent=r.ok?(j.message||'You are subscribed.'):(j.error||'Something went wrong. Please try again.')})})
 .catch(function(){m.textContent='Could not reach the server. Please try again later.'})})});
 </script>'''
+SEARCH_JS = r'''<script>
+(function(){
+var root=document.getElementById('srch');if(!root)return;
+var inp=root.querySelector('input[type=search]'),out=root.querySelector('ul.res'),stat=root.querySelector('.stat'),chips=root.querySelectorAll('.sfc button'),base=root.getAttribute('data-base')||'';
+var data=null,ed='',shown=25,last=[],timer=null;
+var ESC={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'};
+function esc(s){return s.replace(/[&<>"]/g,function(c){return ESC[c]})}
+function rx(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+function fmt(iso){var d=new Date(iso+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
+function parse(q){var t=[],ph=[],m,re=/"([^"]+)"|(\S+)/g;q=q.toLowerCase();while((m=re.exec(q))){if(m[1]){ph.push(m[1].trim());m[1].trim().split(/\s+/).forEach(function(x){t.push(x)})}else t.push(m[2].replace(/^["']|["']$/g,''))}return{t:t.filter(Boolean),ph:ph}}
+function run(){
+ if(!data)return;
+ var q=inp.value.trim();
+ if(history.replaceState){try{history.replaceState(null,'',q?'?q='+encodeURIComponent(q):location.pathname)}catch(e){}}
+ if(q.length<2){out.innerHTML='';stat.textContent=data.length+' sections from '+new Set(data.map(function(e){return e.d})).size+' days of editions. Type a word, a name or a phrase in quotes.';last=[];return}
+ var p=parse(q),res=[];
+ data.forEach(function(e){
+  if(ed&&e.e!==ed)return;
+  var tx=e._t||(e._t=(e.t).toLowerCase()),ti=e._s||(e._s=e.s.toLowerCase()),sc=0,i,ok=true;
+  for(i=0;i<p.ph.length;i++){if(tx.indexOf(p.ph[i])<0&&ti.indexOf(p.ph[i])<0){ok=false;break}sc+=6}
+  if(!ok)return;
+  for(i=0;i<p.t.length;i++){
+   var w=p.t[i],c=0,at=-1;while((at=tx.indexOf(w,at+1))>=0&&c<6){c++;if(at===0||/[^a-z0-9]/.test(tx.charAt(at-1)))sc+=1}
+   var inT=ti.indexOf(w)>=0;
+   if(!c&&!inT){ok=false;break}
+   sc+=c+(inT?5:0)}
+  if(ok)res.push([sc,e])});
+ res.sort(function(a,b){return b[0]-a[0]||(a[1].d<b[1].d?1:-1)});
+ last=res;shown=25;draw(q,p)}
+function snip(e,p){
+ var tx=e.t,low=e._t,best=-1,i;
+ for(i=0;i<p.ph.length;i++){var k=low.indexOf(p.ph[i]);if(k>=0&&(best<0||k<best))best=k}
+ if(best<0)for(i=0;i<p.t.length;i++){var k2=low.indexOf(p.t[i]);if(k2>=0&&(best<0||k2<best))best=k2}
+ if(best<0)best=0;
+ var a=Math.max(0,best-90),b=Math.min(tx.length,best+190);
+ if(a>0){var sp=tx.indexOf(' ',a);if(sp>=0&&sp<best)a=sp+1}
+ if(b<tx.length){var sp2=tx.lastIndexOf(' ',b);if(sp2>best)b=sp2}
+ return(a>0?'…':'')+tx.slice(a,b)+(b<tx.length?'…':'')}
+function draw(q,p){
+ var terms=p.t.concat(p.ph).filter(Boolean).sort(function(a,b){return b.length-a.length}).map(rx);
+ var hl=terms.length?new RegExp('('+terms.join('|')+')','gi'):null;
+ if(!last.length){out.innerHTML='';stat.textContent='No results for “'+q+'”. Try fewer words or a different spelling.';return}
+ stat.textContent=last.length+(last.length===1?' result':' results')+' for “'+q+'”';
+ var h='',n=Math.min(shown,last.length);
+ for(var i=0;i<n;i++){var e=last[i][1],s=esc(snip(e,p));if(hl)s=s.replace(hl,'<mark>$1</mark>');
+  var href=(e.u.indexOf('http')===0?'':base)+e.u;
+  h+='<li><div class="rm">'+esc(fmt(e.d))+(e.e?' &middot; <span class="re">'+esc(e.e)+'</span>':'')+'</div><a class="rt" href="'+href+'">'+esc(e.s)+'</a><p>'+s+'</p></li>'}
+ out.innerHTML=h;
+ if(n<last.length){var li=document.createElement('li');li.style.borderBottom='0';var bt=document.createElement('button');bt.type='button';bt.className='showmore';bt.textContent='Show more results';bt.onclick=function(){shown+=25;draw(q,p)};li.appendChild(bt);out.appendChild(li)}}
+inp.addEventListener('input',function(){clearTimeout(timer);timer=setTimeout(run,120)});
+root.querySelector('form').addEventListener('submit',function(e){e.preventDefault();run()});
+chips.forEach(function(c){c.addEventListener('click',function(){ed=c.getAttribute('data-ed');chips.forEach(function(x){x.classList.toggle('on',x===c)});run()})});
+var m=location.search.match(/[?&]q=([^&]*)/);if(m){try{inp.value=decodeURIComponent(m[1].replace(/\+/g,' '))}catch(e){}}
+stat.textContent='Loading the archive…';
+fetch(root.getAttribute('data-src')).then(function(r){return r.json()}).then(function(j){data=j;run();inp.focus()}).catch(function(){stat.textContent='Search could not load. Please refresh the page.'});
+})();
+</script>'''
+def plain(l):
+    l = re.sub(r'\[([^\]]+)\]\([^)\s]+\)', r'\1', l); l = re.sub(r'\*\*|\*', '', l); return l.strip()
+def index_entries(iso, secs, prefix, ed=None):
+    out = []
+    for title, lines in secs:
+        slug = re.sub(r'[^a-z]+', '-', title.lower()).strip('-')
+        ls = lines[1:] if lines and lines[0].startswith('~ ') else lines
+        t = ' '.join(x for x in (plain(l) for l in ls) if x)
+        if not t: continue
+        e = {'d': iso, 's': title, 't': t, 'u': f'{prefix}editions/{iso}/#{slug}'}
+        if ed: e['e'] = ed
+        out.append(e)
+    return out
+def search_box(src, base, chips=''):
+    return (f'<div id="srch" data-src="{src}" data-base="{base}"><h1 class="page">Search</h1>'
+            f'<form class="sf" role="search" action="" method="get"><input type="search" name="q" placeholder="Search every edition" aria-label="Search every edition" autocomplete="off"><button type="submit">SEARCH</button></form>'
+            f'{chips}<p class="stat" aria-live="polite"></p><ul class="res"></ul></div>')
 def title_html():
     words = SITE.upper().split(); return ' '.join(f'<span class="cap">{w[0]}</span>{w[1:]}' for w in words)
 def subscribe_box():
@@ -334,11 +419,14 @@ for iso, secs in eds:
 latest_iso, latest = eds[0]
 w('index.html', page(SITE, render(latest), desc=first_para(latest), top=topline('', latest_iso, f'editions/{latest_iso}/'), after=sub_prompt('')))
 items = ''.join(f'<li><span class="d">{long_date(i)}</span><br><a href="../editions/{i}/">{E(SITE)}, {long_date(i)}</a><p>{E(first_para(s))}</p></li>' for i, s in eds)
-w('archive/index.html', page(f'Archive — {SITE}', f'<h1 class="page">Archive</h1><ul class="arch">{items}</ul>' + sub_prompt('../'), rel='../', canon='/archive/'))
+w('archive/index.html', page(f'Archive — {SITE}', f'<h1 class="page">Archive</h1><form class="sf" role="search" action="../search/" method="get"><input type="search" name="q" placeholder="Search every edition" aria-label="Search every edition"><button type="submit">SEARCH</button></form><ul class="arch">{items}</ul>' + sub_prompt('../'), rel='../', canon='/archive/'))
+ENTRIES = [x for i, sc in eds for x in index_entries(i, sc, '')]
+w('search.json', json.dumps(ENTRIES, ensure_ascii=False, separators=(',', ':')))
+w('search/index.html', page(f'Search — {SITE}', search_box('../search.json', '../'), rel='../', desc='Search every edition of ' + SITE + '.', canon='/search/', after=SEARCH_JS))
 w('about/index.html', page(f'About — {SITE}', f'''<h1 class="page">About</h1><p>{E(SITE)} is a short weekday briefing on what is actually going on in {E(REGION)} business and tech. It covers who is up, who is down, what people are whispering and what the press is getting wrong. It is written to be read in five minutes and repeated at dinner, where it will be credited to you.</p><p>The tone is dry on purpose. The takes are meant to be correct, and the jokes are there to help them along. Stories are chosen for water-cooler interest, and the number of press releases a story generated counts against it.</p><p><strong>How this is made.</strong> Every weekday morning, software searches the news, picks the stories, writes the takes, attaches the links and sends the email, all before most readers have located their coffee. The daily run is fully automated, so in the technical sense there are no humans in the loop. The software in question is Claude, an AI model made by Anthropic, which this briefing occasionally covers, so read those items with whatever discount you think fair.</p><p>There is, however, a human on the loop, which is a different thing and a much less restful job. The curator conceived the whole enterprise and designed every part of it, from the sections and the voice to the rules on what counts as a story, how dry the jokes should be, and when an old story earns an update. The curator reads each edition every morning, in the manner of a nervous parent at a school play.</p><p>The software is told to link only to pages it actually read, and it still gets things wrong now and then. That is what the footer means by occasionally wrong, and it is why every item carries its sources. Think of them as receipts.</p><p>Readers are welcome to forward the email and to quote short excerpts with a link back to the original. Please do not republish whole editions without permission. The software has no feelings about this, but the publisher does.</p><p>Designed by hand, written by Claude. Questions, corrections and tips are welcome at <a href="mailto:human@termsundisclosed.com">human@termsundisclosed.com</a>, where an actual human will read them.</p>''' + sub_prompt('../'), rel='../', canon='/about/'))
 w('subscribe/index.html', page(f'Subscribe — {SITE}', '<h1 class="page">Subscribe</h1>' + subscribe_box(), rel='../', canon='/subscribe/'))
 w('unsubscribe/index.html', page(f'Unsubscribe — {SITE}', '''<h1 class="page">Unsubscribe</h1><p>Every email has an <strong>Unsubscribe</strong> link in the footer. Click it, confirm in the follow-up email, and you are off the list. You will not be asked to log in, and nobody will ask why you are leaving, though the software may privately wonder.</p><p>If that link has gone missing, write to <a href="mailto:human@termsundisclosed.com?subject=Unsubscribe">human@termsundisclosed.com</a> with the subject &ldquo;Unsubscribe&rdquo; and you will be removed by hand, by an actual human, who will try not to take it personally.</p>''', rel='../', canon='/unsubscribe/'))
 w('robots.txt', f'User-agent: *\nAllow: /\nSitemap: {BASE}/sitemap.xml\n')
-urls = ['/', '/archive/', '/about/', '/subscribe/', '/unsubscribe/'] + [f'/editions/{i}/' for i, _ in eds]
+urls = ['/', '/archive/', '/search/', '/about/', '/subscribe/', '/unsubscribe/'] + [f'/editions/{i}/' for i, _ in eds]
 w('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{BASE}{u}</loc></url>' for u in urls) + '</urlset>')
 print('built', len(eds), 'editions ->', OUT)
