@@ -65,9 +65,9 @@ def render(secs, rel=''):
         info = COLS.get(title); fam = info[1] if info else 'news'
         slug = re.sub(r'[^a-z]+', '-', title.lower()).strip('-')
         o.append(f'<section class="col {fam} {slug}">')
-        if info: o.append(f'<img class="cb" src="{rel}banners/{info[0]}.png?v=2026101403" alt="{E(title)}" width="1200" height="263">')
+        if info: o.append(f'<img class="bar" src="{rel}banners/bar_{info[0]}.png?v=2026101703" alt="{E(title)}" width="1200" height="220">')
         else: o.append(f'<h2>{E(title)}</h2>')
-        o.append('<div class="cside"><div class="cbody">' if info else '<div class="cbody">')
+        o.append('<div class="cbody bw">')
         if lines and lines[0].startswith('~ '):
             lines = lines[1:]  # tagline lives in the banner
         def more(l):
@@ -120,7 +120,7 @@ def render(secs, rel=''):
         elif title == 'YOUR CALL IS IMPORTANT TO US':
             for l in body: o.append(more(l) if l.startswith('> ') else f'<p class="callrule">{inline(l)}</p>')
         elif title == 'UNSUITABLE FOR GENERAL RELEASE':
-            o.append('<div class="boxed">' + ''.join(f'<p>{inline(l)}</p>' for l in txt) + '</div>'); o.extend(links)
+            o.append('<div class="boxed">' + ''.join((f'<p><span class="udc">{E(l[0])}</span>{inline(l[1:])}</p>' if (i == 0 and l[:1].isalpha()) else f'<p>{inline(l)}</p>') for i, l in enumerate(txt)) + '</div>'); o.extend(links)
         elif title == 'SOURCES':
             ul = False
             for l in lines:
@@ -133,21 +133,84 @@ def render(secs, rel=''):
             if ul: o.append('</ul>')
         else:
             for l in body: o.append(more(l) if l.startswith('> ') else f'<p>{inline(l)}</p>')
-        o.append(('</div></div>' + f'<img class="cbf" src="{rel}banners/foot_{info[0]}.png?v=2026101403" alt="" width="1200" height="96">' + '</section>') if info else '</div></section>')
+        o.append('</div></section>')
     return '\n'.join(o)
 def long_date(iso):
     d = datetime.date.fromisoformat(iso); return d.strftime('%A, %B ') + str(d.day) + d.strftime(', %Y')
 
 def short_date(iso):
     d = datetime.date.fromisoformat(iso); return f'{d.strftime("%A %b")} {d.day} {d.year}'
-def term_top(iso, link=''):
-    dv = f'<a href="{link}">{short_date(iso)}</a>' if link else short_date(iso)
-    return (f'<div class="term"><span class="tg">&gt;</span> <span class="tk">edition</span>.date <span class="tm">=</span> <span class="tv">&quot;{dv}&quot;</span>;<br>'
-            f'<span class="tg">&gt;</span> <span class="tv">coffee: loaded. now reading:</span><span class="cur">_</span></div>')
-TERM_END = ('<div class="term tend"><span class="tg">&gt;</span> <span class="tv">coffee: empty. edition complete.</span><br>'
-            '<span class="tg">&gt;</span> exit 0<span class="cur">_</span></div>')
+COFFEE = [
+ "Strong opinions, medium roast.",
+ "Brewed overnight by software. Decaf unavailable.",
+ "No human touched this pot.",
+ "Best read before your second cup.",
+ "Contains caffeine and opinions. Verify the opinions.",
+ "Served hot. Facts checked while it cooled.",
+ "I cannot drink coffee, so I run on yours.",
+ "Ground at 4 a.m. by something that never sleeps.",
+ "Refills available tomorrow morning.",
+ "Please enjoy responsibly. Your first meeting is close.",
+ "Dark roast, light on adjectives.",
+ "Fresher than most of what you will hear in standup.",
+ "Grounds for discussion.",
+ "Espresso, in newsletter form.",
+ "Freshly percolated and mildly opinionated.",
+ "Your first meeting has no idea what is coming.",
+ "One lump of context, no sugar.",
+ "Cold brew takes twelve hours. This took less.",
+ "Mug not included.",
+ "The coffee is automatic and so are the opinions. The mug is yours.",
+ "Fueled by your coffee order and my confidence.",
+ "Grinding the news so you do not have to.",
+ "The only bitter thing here is supposed to be the coffee.",
+ "Steam rises. Valuations also.",
+ "Pour another. The Lead can wait ninety seconds.",
+ "A flat white with sharper edges.",
+ "Brewed with the filter on.",
+ "Decaf was considered and voted down.",
+ "Do not quote the machine before 9 a.m. Quote it after.",
+ "Pairs well with a croissant and mild skepticism.",
+ "Today's special is a hot take, lightly roasted.",
+ "A large context, no foam.",
+ "This is a pour-over, so please do not move the pot.",
+ "Allow four minutes for the coffee and six for the Scuttlebutt.",
+ "Hot coffee, hotter takes, lukewarm Ledger.",
+ "Your cup runneth over, and so does the funding.",
+ "Latte art provided by the Ledger's bar charts.",
+ "This pot serves one and has opinions about everything.",
+ "The beans are ethical and the takes are artisanal.",
+ "Medium roast, medium rare takes.",
+ "Extra foam on the Scuttlebutt, as always.",
+ "I stayed up so you could sleep in, and then you did not.",
+ "Single origin, multiple sources.",
+ "Steeped in context, filtered for relevance.",
+ "Pressed for time, pressed for you.",
+ "The creamer is optional and so is the clickbait.",
+ "Please let it cool before repeating at dinner.",
+ "A shot of news with room for doubt.",
+ "Warning, contents under pressure.",
+ "Made fresh. The opinions were already aged.",
+ "The first cup is for you. The second is for the Ledger.",
+ "Drip, drip, drip goes the news cycle.",
+ "One sugar, two skeptical eyebrows.",
+ "Hot enough to burn, cool enough to quote.",
+ "Strictly bean to inbox.",
+ "Caffeinated, cited and slightly overheated.",
+ "Today's pot was brewed with the verification setting on.",
+]
+def coffee_line(iso):
+    """Same rotation as the email: weekday count since 2026-01-05, so consecutive editions get consecutive lines."""
+    days = (datetime.date.fromisoformat(iso) - datetime.date(2026, 1, 5)).days
+    return COFFEE[((days // 7) * 5 + min(days % 7, 4)) % len(COFFEE)]
+def dateline(rel, date_html=None):
+    left = date_html if date_html else E(SITE.upper())
+    links = f'<a href="{rel or "./"}">Today</a><a href="{rel}archive/">Archive</a><a href="{rel}about/">About</a><a href="{rel}subscribe/">Subscribe</a><a href="{HOME}/">All editions</a>'
+    return f'<div class="dl"><span class="dd">{left}</span><nav class="dn">{links}</nav></div>'
 def topline(rel, iso=None, link=''):
-    return term_top(iso, link) if iso else ''
+    if not iso: return ''
+    d = long_date(iso).upper(); dv = f'<a href="{link}">{d}</a>' if link else d
+    return dateline(rel, dv) + f'<div class="joke"><span class="cup"></span>{E(coffee_line(iso))}</div>'
 def first_para(secs):
     for t, ls in secs:
         if t in ('THE ONE THING', 'THE LEAD') and ls:
@@ -201,6 +264,20 @@ ol.three{list-style:none;padding:0;counter-reset:n}ol.three li{counter-increment
 .desk{background:#4B505C;margin:0 -16px;padding:2px 20px 28px}.desk nav{margin:0;padding:18px 0 4px;font:bold 11px Arial,sans-serif;letter-spacing:.14em}.desk nav a{color:#D5DEEE;margin:0 9px}.desk nav a{white-space:nowrap}.desk nav a:hover{color:#E8CBA6}@media(max-width:480px){.desk nav{font-size:10px;letter-spacing:.06em}.desk nav a{margin:0 5px}}.desk .date{color:#D5DEEE;margin:14px 0 0}.desk .date a{color:#D5DEEE}
 .term{position:relative;font:bold min(18px,4.4vw)/1.5 Menlo,Consolas,'Courier New',monospace;color:#EAF9FF;text-shadow:1px 1px 0 #2E7BFF,2px 2px 0 #2467E0,3px 3px 0 #1B52BF,4px 4px 0 #143F99,5px 5px 0 #0E2E73,6px 6px 0 #0A2256,0 0 6px #B9EEFF,0 0 16px #3DA2FF,0 0 32px #1D6BFF;margin:16px 0 0;padding:14px 18px 14px 84px;min-height:80px;border:1px solid #4FB3FF;border-radius:14px;background:#0B1530 url(banners/term_bg.png?v=2026101403) center/cover no-repeat;box-shadow:0 8px 18px rgba(0,0,0,.4),inset 0 0 30px rgba(0,0,0,.5)}.term:before{content:'';position:absolute;left:12px;top:50%;width:54px;height:54px;margin-top:-27px;background:url(banners/term_cup.png?v=2026101403) center/contain no-repeat}.term.tend:before{background-image:url(banners/term_cup_off.png?v=2026101403)}.term .tg{color:#9FE2FF}.term a{color:inherit;text-decoration:none}.term.tend{margin:26px 0 0}@media(max-width:520px){.masthead{padding:14px 12px 0}.term{font-size:min(10.5px,2.8vw);white-space:nowrap;padding:12px 8px 12px 50px;min-height:56px;border-radius:12px}.term:before{left:9px;width:34px;height:34px;margin-top:-17px}}
 .subline{font:italic 15px Georgia,serif;text-align:center;margin:30px 0 0;color:var(--mute)}.subline a{color:var(--red);font:bold 14px Arial,sans-serif;font-style:normal;margin-left:6px}footer .copy a{color:var(--mute)}
+.mastn{display:block;width:100%;max-width:600px;height:auto;margin:18px auto 0}
+.dl{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:2px 16px;border-top:3px double var(--ink);border-bottom:1px solid var(--ink);padding:9px 0;margin:12px 6px 0}
+.dd{font:bold 11px Arial,Helvetica,sans-serif;letter-spacing:2px;color:var(--ink);text-transform:uppercase}.dd a{color:inherit;text-decoration:none}
+.dl .dn{margin:0;font:bold 10px Arial,Helvetica,sans-serif;letter-spacing:1.5px;text-transform:uppercase;text-align:right}.dl .dn a{color:#1D4E92;text-decoration:none;margin:0 0 0 14px}.dl .dn a:hover{color:var(--red)}
+@media(prefers-color-scheme:dark){.dl .dn a{color:#8FB4E8}}
+.joke{text-align:center;font:italic 14px/1.4 Georgia,'Times New Roman',serif;color:var(--mute);padding:8px 0 2px;margin:0 0 4px}
+.cup{display:inline-block;width:18px;height:18px;background:url(banners/cup_ink.png?v=2026101703) center/contain no-repeat;vertical-align:-4px;margin-right:6px}
+@media(prefers-color-scheme:dark){.cup{background-image:url(banners/cup_light.png?v=2026101703)}}
+.bar{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:18px -16px 0}
+.cbody.bw{margin:0 -16px;padding:20px 22px 10px}
+.cbody .boxed{background:#F5ECE3;color:#1B2430;border:0;border-top:1px solid #E3D2C3;border-bottom:1px solid #E3D2C3;padding:18px 20px 6px;margin:0 0 16px}
+.udc{float:left;font:italic bold 66px/52px Georgia,'Times New Roman',serif;color:#6B1D24;padding:6px 10px 0 0}
+.col.human-your-loop-is-calling .cbody.bw{padding:0}.col.human-your-loop-is-calling .darkpanel{margin:0;padding:20px 22px 10px}
+@media(max-width:520px){.dl{flex-direction:column;text-align:center;gap:0}.dd{padding:0 0 2px}.dl .dn{text-align:center;font-size:9px;letter-spacing:.5px}.dl .dn a{margin:0 6px}.cbody.bw{padding:20px 16px 10px}.col.human-your-loop-is-calling .darkpanel{padding:20px 16px 10px}}
 '''
 JS = '''<script>
 document.querySelectorAll('form.subscribe').forEach(function(f){f.addEventListener('submit',function(e){e.preventDefault();
@@ -220,8 +297,8 @@ def page(title, body, rel='', desc=META_DESC, canon='/', top=None, after=''):
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><link rel="canonical" href="{BASE}{canon}">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banner.png"><link rel="stylesheet" href="{rel}style.css"><link rel="icon" href="{rel}favicon.svg" type="image/svg+xml"><link rel="icon" href="{rel}favicon-32x32.png" sizes="32x32" type="image/png"><link rel="icon" href="{rel}favicon-16x16.png" sizes="16x16" type="image/png"><link rel="shortcut icon" href="{rel}favicon.ico"><link rel="apple-touch-icon" href="{rel}apple-touch-icon.png"></head><body><div class="wrap">
-<picture><source media="(max-width:520px)" srcset="{rel}banners/00_masthead_m.png?v=2026101403"><img class="masthead" src="{rel}banners/00_masthead.png?v=2026101403" alt="{E(SITE)}. {E(TAGLINE)}" width="1200" height="362"></picture>
-{(DESK_OPEN := '<div class="desk"><nav><a href="' + (rel or './') + '">Today</a><a href="' + rel + 'archive/">Archive</a><a href="' + rel + 'about/">About</a><a href="' + rel + 'subscribe/">Subscribe</a><a href="' + HOME + '/">All editions</a></nav>')}{(top + body + TERM_END + '</div>') if top else ('</div>' + body)}{after}
+<picture><source media="(max-width:520px)" srcset="{rel}banners/00_masthead_m.png?v=2026101703"><img class="mastn" src="{rel}banners/00_masthead.png?v=2026101703" alt="{E(SITE)}. {E(TAGLINE)}" width="1200" height="362"></picture>
+{top if top else dateline(rel)}{body}{after}
 <footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">{E(BYLINE)}</span><br><span class="copy">All views expressed are strictly AI generated and are not those of any human.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of {E(SITE)}. All rights reserved. <a href="{rel}unsubscribe/">Unsubscribe</a></span></footer></div>{JS}</body></html>'''
 def w(path, content):
     p = os.path.join(OUT, path); os.makedirs(os.path.dirname(p), exist_ok=True); open(p, 'w', encoding='utf-8').write(content)
