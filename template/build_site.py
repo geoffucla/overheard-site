@@ -65,7 +65,7 @@ def render(secs, rel=''):
         info = COLS.get(title); fam = info[1] if info else 'news'
         slug = re.sub(r'[^a-z]+', '-', title.lower()).strip('-')
         o.append(f'<section class="col {fam} {slug}" id="{slug}">')
-        if info: o.append(f'<img class="bar" src="{rel}banners/bar_{info[0]}.png?v=2026101703" alt="{E(title)}" width="1200" height="220">')
+        if info: o.append(f'<img class="bar" src="{rel}banners/bar_{info[0]}.png?v=2026101801" alt="{E(title)}" width="1200" height="220">')
         else: o.append(f'<h2>{E(title)}</h2>')
         o.append('<div class="cbody bw">')
         if lines and lines[0].startswith('~ '):
@@ -270,8 +270,8 @@ ol.three{list-style:none;padding:0;counter-reset:n}ol.three li{counter-increment
 .dl .dn{margin:0;font:bold 10px Arial,Helvetica,sans-serif;letter-spacing:1.5px;text-transform:uppercase;text-align:right}.dl .dn a{color:#1D4E92;text-decoration:none;margin:0 0 0 12px}.dl .dn a:hover{color:var(--red)}
 @media(prefers-color-scheme:dark){.dl .dn a{color:#8FB4E8}}
 .joke{text-align:center;font:italic 14px/1.4 Georgia,'Times New Roman',serif;color:var(--mute);padding:8px 0 2px;margin:0 0 4px}
-.cup{display:inline-block;width:18px;height:18px;background:url(banners/cup_ink.png?v=2026101703) center/contain no-repeat;vertical-align:-4px;margin-right:6px}
-@media(prefers-color-scheme:dark){.cup{background-image:url(banners/cup_light.png?v=2026101703)}}
+.cup{display:inline-block;width:18px;height:18px;background:url(banners/cup_ink.png?v=2026101801) center/contain no-repeat;vertical-align:-4px;margin-right:6px}
+@media(prefers-color-scheme:dark){.cup{background-image:url(banners/cup_light.png?v=2026101801)}}
 .bar{display:block;width:calc(100% + 32px);max-width:none;height:auto;margin:18px -16px 0}
 .cbody.bw{margin:0 -16px;padding:20px 22px 10px}
 .cbody .boxed{background:#F5ECE3;color:#1B2430;border:0;border-top:1px solid #E3D2C3;border-bottom:1px solid #E3D2C3;padding:18px 20px 6px;margin:0 0 16px}
@@ -288,7 +288,7 @@ ul.res p{margin:0;font-size:16px;line-height:1.55;color:var(--ink)}
 mark{background:#F9E08B;color:#1F2933;padding:0 1px;border-radius:2px}
 .showmore{display:block;margin:18px auto 0;font:bold 12px Arial,sans-serif;letter-spacing:.1em;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;padding:10px 18px;cursor:pointer}
 .hint{font:14px/1.5 Arial,sans-serif;color:var(--mute);margin:6px 0 0}
-@media(max-width:520px){.dl{flex-direction:column;text-align:center;gap:0}.dd{padding:0 0 2px}.dl .dn{text-align:center;font-size:9px;letter-spacing:.5px}.dl .dn a{margin:0 6px}.cbody.bw{padding:20px 16px 10px}.col.human-your-loop-is-calling .darkpanel{padding:20px 16px 10px}}
+@media(max-width:520px){.dl{flex-direction:column;text-align:center;gap:0}.dd{padding:0 0 2px}.dl .dn{text-align:center;font-size:9px;letter-spacing:.5px}.dl .dn a{margin:0 6px;white-space:nowrap}.cbody.bw{padding:20px 16px 10px}.col.human-your-loop-is-calling .darkpanel{padding:20px 16px 10px}}
 '''
 JS = '''<script>
 document.querySelectorAll('form.subscribe').forEach(function(f){f.addEventListener('submit',function(e){e.preventDefault();
@@ -382,7 +382,7 @@ def page(title, body, rel='', desc=META_DESC, canon='/', top=None, after=''):
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><link rel="canonical" href="{BASE}{canon}">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banner.png"><link rel="stylesheet" href="{rel}style.css"><link rel="icon" href="{rel}favicon.svg" type="image/svg+xml"><link rel="icon" href="{rel}favicon-32x32.png" sizes="32x32" type="image/png"><link rel="icon" href="{rel}favicon-16x16.png" sizes="16x16" type="image/png"><link rel="shortcut icon" href="{rel}favicon.ico"><link rel="apple-touch-icon" href="{rel}apple-touch-icon.png"></head><body><div class="wrap">
-<picture><source media="(max-width:520px)" srcset="{rel}banners/00_masthead_m.png?v=2026101703"><img class="mastn" src="{rel}banners/00_masthead.png?v=2026101703" alt="{E(SITE)}. {E(TAGLINE)}" width="1200" height="362"></picture>
+<picture><source media="(max-width:520px)" srcset="{rel}banners/00_masthead_m.png?v=2026101801"><img class="mastn" src="{rel}banners/00_masthead.png?v=2026101801" alt="{E(SITE)}. {E(TAGLINE)}" width="1200" height="362"></picture>
 {top if top else dateline(rel)}{body}{after}
 <footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">{E(BYLINE)}</span><br><span class="copy">All views expressed are strictly AI generated and are not those of any human.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of {E(SITE)}. All rights reserved. <a href="{rel}unsubscribe/">Unsubscribe</a></span></footer></div>{JS}</body></html>'''
 def w(path, content):

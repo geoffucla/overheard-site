@@ -23,7 +23,7 @@ CSS += '''
 live = [(k, v) for k, v in CFG.items() if v.get('status') == 'live']
 nums = len(CFG)
 def card(key, fam, inner, title):
-    return (f'<section class="col {fam}"><img class="bar" src="banners/bar_{key}.png?v=2026101703" alt="{E(title)}" width="1200" height="220">'
+    return (f'<section class="col {fam}"><img class="bar" src="banners/bar_{key}.png?v=2026101801" alt="{E(title)}" width="1200" height="220">'
             f'<div class="cbody bw">{inner}</div></section>')
 what = ('<p>Terms Undisclosed is a short weekday briefing on what is actually going on in business and tech, written for people who need to be '
         'clued in and quotable before their first meeting. It covers funding, deals, regulation, rumors and the occasional absurdity, and it is written to be '
@@ -45,7 +45,7 @@ def page(title, body, rel='', desc='', canon='/', after=''):
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><link rel="canonical" href="{BASE}{canon}">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:image" content="{BASE}/banner.png"><link rel="stylesheet" href="{rel}style.css"><link rel="icon" href="{rel}favicon.svg" type="image/svg+xml"><link rel="icon" href="{rel}favicon-32x32.png" sizes="32x32" type="image/png"><link rel="shortcut icon" href="{rel}favicon.ico"><link rel="apple-touch-icon" href="{rel}apple-touch-icon.png"></head><body><div class="wrap">
-<picture><source media="(max-width:520px)" srcset="{rel}banners/00_masthead_m.png?v=2026101703"><img class="mastn" src="{rel}banners/00_masthead.png?v=2026101703" alt="Terms Undisclosed. News, deals, rumors and unsolicited opinions" width="1200" height="362"></picture>
+<picture><source media="(max-width:520px)" srcset="{rel}banners/00_masthead_m.png?v=2026101801"><img class="mastn" src="{rel}banners/00_masthead.png?v=2026101801" alt="Terms Undisclosed. News, deals, rumors and unsolicited opinions" width="1200" height="362"></picture>
 {dl(rel)}{body}{after}
 <footer>Informed, opinionated, occasionally wrong. Verify before repeating at dinner.<br><span class="copy">Designed by hand, written by Claude.</span><br><span class="copy">All views expressed are strictly AI generated and are not those of any human.</span><br><span class="copy">No humans in the loop. One human on the loop.</span><br><span class="copy">&copy; {datetime.date.today().year} Humans Not Included Media, publisher of Terms Undisclosed. All rights reserved.</span></footer></div></body></html>'''
 def w(path, content):
